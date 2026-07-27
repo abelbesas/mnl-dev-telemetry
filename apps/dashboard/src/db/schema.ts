@@ -46,6 +46,12 @@ export const draftStatus = pgEnum("draft_status", [
   "dismissed",
 ]);
 export const jiraKind = pgEnum("jira_kind", ["ours", "client"]);
+export const deviceAuthStatus = pgEnum("device_auth_status", [
+  "pending",
+  "approved",
+  "denied",
+  "expired",
+]);
 
 // --- Tables ---------------------------------------------------------------
 
@@ -153,6 +159,28 @@ export const mirrorLinks = pgTable("mirror_links", {
   ),
 });
 
+/**
+ * Device-authorization grants (spec §4.3, item 1). Short-lived records backing
+ * the CLI's device-flow login. `tokenPlaintext` parks the minted agent token
+ * between approval and the CLI's next poll, then is cleared on retrieval — the
+ * durable copy in `agent_tokens` is still only the sha256 hash (spec §5).
+ */
+export const deviceAuthorizations = pgTable("device_authorizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  deviceCode: text("device_code").notNull().unique(),
+  userCode: text("user_code").notNull().unique(),
+  status: deviceAuthStatus("status").notNull().default("pending"),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  /** One-time plaintext token, nulled once the CLI retrieves it. */
+  tokenPlaintext: text("token_plaintext"),
+  tokenLabel: text("token_label"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+});
+
 /** Audit trail (spec §5): token issue/revoke, draft approval, sync push. */
 export const auditLog = pgTable("audit_log", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -169,3 +197,4 @@ export type UserRow = typeof users.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
 export type NewEventRow = typeof events.$inferInsert;
 export type AgentTokenRow = typeof agentTokens.$inferSelect;
+export type DeviceAuthorizationRow = typeof deviceAuthorizations.$inferSelect;
