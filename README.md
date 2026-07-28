@@ -2,7 +2,7 @@
 
 Client-agnostic developer telemetry. It measures real task time (and how much of it was AI-assisted) by instrumenting **our** machines and tools — never a client's repos, workflows, or Jira. Events land in our own Postgres; Jira/Tempo only ever receive human-approved worklogs.
 
-Full spec: [`docs/devpulse-mvp-brief.md`](docs/devpulse-mvp-brief.md).
+Full spec: [`docs/devpulse-mvp-brief.md`](docs/devpulse-mvp-brief.md). test
 
 ## What's here
 
