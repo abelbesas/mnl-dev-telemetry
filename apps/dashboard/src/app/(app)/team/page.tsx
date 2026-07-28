@@ -10,12 +10,22 @@ import { formatShortDay, toHours } from "@/lib/format";
 import { getAllEstimates, getAllSessions, getTeamHeadcount } from "@/lib/queries";
 import { lastNDays } from "@/lib/range";
 import { requireLead } from "@/lib/session";
+import { runStitch } from "@/lib/stitch-run";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
   await requireLead();
+
+  // Rebuild everyone's sessions so the aggregates are current without depending
+  // on the daily cron (Vercel Hobby). Lead-only + infrequently viewed, so the
+  // full rebuild is acceptable; never let a stitch error blank the page.
+  try {
+    await runStitch();
+  } catch (err) {
+    console.error("team: on-load stitch failed", err);
+  }
 
   const now = new Date();
   const range = lastNDays(now, DEFAULT_TZ, 28);

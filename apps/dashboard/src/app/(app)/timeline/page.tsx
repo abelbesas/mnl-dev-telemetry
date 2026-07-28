@@ -10,6 +10,7 @@ import {
 import { getUser, getUserSessions } from "@/lib/queries";
 import { weekRange } from "@/lib/range";
 import { requireUser } from "@/lib/session";
+import { runStitch } from "@/lib/stitch-run";
 import type { TaskSessionRow } from "@/db/schema";
 
 export const runtime = "nodejs";
@@ -21,6 +22,16 @@ export default async function TimelinePage() {
   const tz = user.tz;
   const now = new Date();
   const range = weekRange(now, tz);
+
+  // Rebuild THIS user's sessions on load so a fresh commit shows up on refresh
+  // without waiting for the (daily, on Vercel Hobby) cron. Idempotent + scoped
+  // to one dev, so it's cheap; a stitch failure must never blank the page.
+  try {
+    await runStitch({ userId: sessionUser.id });
+  } catch (err) {
+    console.error("timeline: on-load stitch failed", err);
+  }
+
   const sessions = await getUserSessions(sessionUser.id, range);
 
   const totalReported = sessions.reduce((a, s) => a + s.reportedSeconds, 0);

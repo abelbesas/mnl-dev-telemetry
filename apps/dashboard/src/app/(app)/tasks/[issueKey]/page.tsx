@@ -9,6 +9,7 @@ import {
 } from "@/lib/format";
 import { getTaskDetail, upsertEstimate } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
+import { runStitch } from "@/lib/stitch-run";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,14 @@ export default async function TaskDetailPage({
   const user = await requireUser();
   const { issueKey: rawKey } = await params;
   const issueKey = decodeURIComponent(rawKey);
+
+  // Keep this user's sessions current on load (see timeline note).
+  try {
+    await runStitch({ userId: user.id });
+  } catch (err) {
+    console.error("task detail: on-load stitch failed", err);
+  }
+
   const detail = await getTaskDetail(user.id, issueKey);
 
   async function saveEstimate(formData: FormData) {

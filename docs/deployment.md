@@ -85,9 +85,11 @@ Vercel → Add New → Project → import the GitHub repo, then:
 - Deploy. Note the final URL; if it differs from what you guessed, update
   `APP_URL`/`AUTH_URL` and redeploy (they must match the real origin).
 
-`apps/dashboard/vercel.json` already registers an hourly stitch cron. **Vercel
-Hobby limits crons to once/day** — if you're on Hobby, change the schedule to
-`0 3 * * *`, or just trigger stitching manually (below); it's idempotent.
+`apps/dashboard/vercel.json` registers a **daily** stitch cron (`0 3 * * *`) —
+Hobby-compatible (Hobby allows only once-per-day crons). You rarely need it,
+though: the timeline, task, and team pages **re-stitch on load**, so a commit
+shows up the moment you refresh. The cron is just a nightly safety net; you can
+also trigger a full rebuild manually anytime (below), and it's idempotent.
 
 ## 4. Smoke test the deployment
 
