@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { pgOptions } from "./connection";
 import * as schema from "./schema";
 
 /**
@@ -24,7 +25,7 @@ export function getDb(): Db {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const sql = globalForDb.__devpulseSql ?? postgres(url, { max: 10 });
+  const sql = globalForDb.__devpulseSql ?? postgres(url, pgOptions(url));
   const db = drizzle(sql, { schema, casing: "snake_case" });
 
   globalForDb.__devpulseSql = sql;

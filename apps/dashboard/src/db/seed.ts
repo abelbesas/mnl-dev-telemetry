@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { generateAgentToken, hashAgentToken } from "@devpulse/shared";
+import { pgOptions } from "./connection";
 import * as schema from "./schema";
 
 /**
@@ -19,7 +20,7 @@ async function main() {
   const email = process.env.SEED_EMAIL ?? "dev@devpulse.local";
   const name = process.env.SEED_NAME ?? "Seed Dev";
 
-  const sql = postgres(url, { max: 1 });
+  const sql = postgres(url, { ...pgOptions(url), max: 1 });
   const db = drizzle(sql, { schema, casing: "snake_case" });
 
   const [user] = await db

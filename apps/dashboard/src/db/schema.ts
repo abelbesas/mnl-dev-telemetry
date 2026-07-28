@@ -60,6 +60,13 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   role: userRole("role").notNull().default("dev"),
+  /**
+   * Per-user working-hours settings used by the stitcher's clamp (spec §4.2/§4.5
+   * Settings). Defaults mirror the shared config; editable from the Settings page.
+   */
+  tz: text("tz").notNull().default("Asia/Manila"),
+  workdayStart: text("workday_start").notNull().default("09:00"),
+  workdayEnd: text("workday_end").notNull().default("18:00"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -114,8 +121,15 @@ export const taskSessions = pgTable("task_sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   issueKey: text("issue_key"),
   repo: text("repo"),
+  /** Raw session span bounds (spec §4.2: "keep raw span too"). */
   startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
   endedAt: timestamp("ended_at", { withTimezone: true }).notNull(),
+  /**
+   * Working-hours-clamped duration (spec §4.2.3: the *reported* seconds). Raw
+   * span is `ended_at - started_at`; this is the clamped subset that rolls up
+   * into worklog drafts in Phase 5.
+   */
+  reportedSeconds: integer("reported_seconds").notNull().default(0),
   aiAssisted: boolean("ai_assisted").notNull().default(false),
   aiTool: text("ai_tool"),
   eventCount: integer("event_count").notNull().default(0),
@@ -160,6 +174,24 @@ export const mirrorLinks = pgTable("mirror_links", {
 });
 
 /**
+ * Manual per-ticket time estimates (spec §4.5 Task detail: "estimate vs actual").
+ * In the MVP an estimate is a manual field entered in the dashboard; Phase 5
+ * will populate it from Jira. Ticket-level (one estimate per issue key), so the
+ * Task-detail view can compare it against any dev's actual clamped time.
+ */
+export const taskEstimates = pgTable("task_estimates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  issueKey: text("issue_key").notNull().unique(),
+  estimateSeconds: integer("estimate_seconds").notNull(),
+  updatedBy: uuid("updated_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
  * Device-authorization grants (spec §4.3, item 1). Short-lived records backing
  * the CLI's device-flow login. `tokenPlaintext` parks the minted agent token
  * between approval and the CLI's next poll, then is cleared on retrieval — the
@@ -198,3 +230,6 @@ export type EventRow = typeof events.$inferSelect;
 export type NewEventRow = typeof events.$inferInsert;
 export type AgentTokenRow = typeof agentTokens.$inferSelect;
 export type DeviceAuthorizationRow = typeof deviceAuthorizations.$inferSelect;
+export type TaskSessionRow = typeof taskSessions.$inferSelect;
+export type NewTaskSessionRow = typeof taskSessions.$inferInsert;
+export type TaskEstimateRow = typeof taskEstimates.$inferSelect;
