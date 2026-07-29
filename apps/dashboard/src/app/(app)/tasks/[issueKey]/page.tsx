@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { BarChart } from "@/components/charts";
 import { EstimateForm, type EstimateState } from "@/components/EstimateForm";
+import { InfoTip } from "@/components/InfoTip";
 import {
   formatClock,
   formatDay,
@@ -100,24 +101,36 @@ export default async function TaskDetailPage({
 
       <div className="grid cols-4" style={{ marginBottom: "1.5rem" }}>
         <div className="card stat">
-          <div className="label">Estimate</div>
+          <div className="label">
+            Estimate
+            <InfoTip text="The planned time for this ticket. Entered by hand for now; Phase 5 will pull it from Jira." />
+          </div>
           <div className="value">
             {estimateSeconds ? `${toHours(estimateSeconds)}h` : "—"}
           </div>
           <div className="sub">manual (Jira sync in Phase 5)</div>
         </div>
         <div className="card stat">
-          <div className="label">Actual (reported)</div>
+          <div className="label">
+            Actual (reported)
+            <InfoTip text="Your real time on this ticket inside working hours, summed from all your sessions. This is what would be logged to Jira." />
+          </div>
           <div className="value">{toHours(actualSeconds)}h</div>
           <div className="sub">{detail.sessions.length} sessions</div>
         </div>
         <div className="card stat">
-          <div className="label">Raw span</div>
+          <div className="label">
+            Raw span
+            <InfoTip text="Wall-clock time from your first to last activity on this ticket, before trimming to your working hours. Usually higher than reported." />
+          </div>
           <div className="value">{toHours(rawSeconds)}h</div>
           <div className="sub">before working-hours clamp</div>
         </div>
         <div className="card stat">
-          <div className="label">Compression</div>
+          <div className="label">
+            Compression
+            <InfoTip text="Actual ÷ Estimate. Under 1 means you beat the estimate, over 1 means it took longer. Example: 0.5× = half the estimated time." />
+          </div>
           <div className="value" style={{ color: ratioColor }}>
             {ratio != null ? `${ratio.toFixed(2)}×` : "—"}
           </div>

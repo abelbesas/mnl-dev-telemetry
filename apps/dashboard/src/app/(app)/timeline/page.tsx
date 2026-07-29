@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MiniBar } from "@/components/charts";
+import { InfoTip } from "@/components/InfoTip";
 import {
   dayKey,
   formatClock,
@@ -62,17 +63,26 @@ export default async function TimelinePage() {
 
       <div className="grid cols-3" style={{ marginBottom: "1.5rem" }}>
         <div className="card stat">
-          <div className="label">Reported this week</div>
+          <div className="label">
+            Reported this week
+            <InfoTip text="Your time this week inside your set working hours, added up across all sessions. Time outside work hours or on weekends isn't counted." />
+          </div>
           <div className="value">{toHours(totalReported)}h</div>
           <div className="sub">{sessions.length} sessions</div>
         </div>
         <div className="card stat">
-          <div className="label">AI-assisted share</div>
+          <div className="label">
+            AI-assisted share
+            <InfoTip text="How much of your reported time came from sessions where an AI agent helped — detected from AI co-author trailers on commits (or agent events)." />
+          </div>
           <div className="value">{aiSharePct}%</div>
           <div className="sub">{toHours(aiReported)}h with an AI agent</div>
         </div>
         <div className="card stat">
-          <div className="label">Tasks touched</div>
+          <div className="label">
+            Tasks touched
+            <InfoTip text="How many distinct tickets (or branches, when there's no ticket key) you worked on this week." />
+          </div>
           <div className="value">{tasks.size}</div>
           <div className="sub">distinct tickets / branches</div>
         </div>
