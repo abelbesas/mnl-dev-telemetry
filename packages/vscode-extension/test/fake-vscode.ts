@@ -33,6 +33,10 @@ export interface FakeVscode {
   __opened: string[];
   /** Answer the next showXMessage with this item (then falls back to undefined). */
   __answer: (message: RegExp, item: string | undefined) => void;
+  /** Simulate a document edit with the given URI scheme (heartbeat activity). */
+  __fireDocumentChange: (scheme: string) => void;
+  __fireDocumentSave: (scheme: string) => void;
+  __fireSelectionChange: (scheme: string) => void;
 
   // --- surface used by the extension ---
   window: Record<string, unknown>;
@@ -105,6 +109,13 @@ export function createFakeVscode(
     return Promise.resolve(undefined);
   }
 
+  // Editor-activity events the heartbeat sender subscribes to.
+  const docChange = new FakeEventEmitter<{ document: { uri: { scheme: string } } }>();
+  const docSave = new FakeEventEmitter<{ uri: { scheme: string } }>();
+  const selectionChange = new FakeEventEmitter<{
+    textEditor: { document: { uri: { scheme: string } } };
+  }>();
+
   return {
     __statusBar: statusBar,
     __commands: commands,
@@ -112,6 +123,10 @@ export function createFakeVscode(
     __output: output,
     __opened: opened,
     __answer: (message, item) => answers.push([message, item]),
+    __fireDocumentChange: (scheme) => docChange.fire({ document: { uri: { scheme } } }),
+    __fireDocumentSave: (scheme) => docSave.fire({ uri: { scheme } }),
+    __fireSelectionChange: (scheme) =>
+      selectionChange.fire({ textEditor: { document: { uri: { scheme } } } }),
 
     StatusBarAlignment: { Left: 1, Right: 2 },
     ProgressLocation: { SourceControl: 1, Window: 10, Notification: 15 },
@@ -167,6 +182,7 @@ export function createFakeVscode(
         ),
       onDidChangeActiveTextEditor: () => noopDisposable,
       onDidChangeWindowState: () => noopDisposable,
+      onDidChangeTextEditorSelection: selectionChange.event,
     },
 
     workspace: {
@@ -176,6 +192,8 @@ export function createFakeVscode(
       }),
       onDidChangeConfiguration: () => noopDisposable,
       onDidChangeWorkspaceFolders: () => noopDisposable,
+      onDidChangeTextDocument: docChange.event,
+      onDidSaveTextDocument: docSave.event,
     },
 
     commands: {

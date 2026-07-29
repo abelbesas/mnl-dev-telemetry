@@ -134,7 +134,7 @@ const taskStopEvent = baseEvent.extend({
   type: z.literal("task_stop"),
   metadata: emptyMetadataSchema.optional(),
 });
-const heartbeatEvent = baseEvent.extend({
+export const heartbeatEvent = baseEvent.extend({
   type: z.literal("heartbeat"),
   metadata: emptyMetadataSchema.optional(),
 });
@@ -166,3 +166,32 @@ export const ingestResponseSchema = z.object({
   skipped_uuids: z.array(z.string()),
 });
 export type IngestResponse = z.infer<typeof ingestResponseSchema>;
+
+// --- Heartbeat (spec §4.1 "lightweight"; Phase 6 §4a) ---------------------
+
+/**
+ * `POST /api/ingest/heartbeat` body. Deliberately the SAME shape as the
+ * `heartbeat` member of the event union above — the endpoint exists to be cheap
+ * to call (one event, no batching), not to be a second event format. `source`
+ * and `type` are defaulted so a caller need only send
+ * `{event_uuid, ts, repo, branch}`, and the parsed result drops straight into
+ * `toEventRow` like any other event.
+ *
+ * PRIVACY (spec §2): the object strips unknown keys, so an editor that tries to
+ * attach a file name or path has it dropped before it can be stored. Presence
+ * is all a heartbeat ever conveys — repo basename, branch, timestamp.
+ */
+export const heartbeatRequestSchema = heartbeatEvent.extend({
+  source: eventSourceSchema.default("extension"),
+  type: z.literal("heartbeat").default("heartbeat"),
+});
+export type HeartbeatRequest = z.input<typeof heartbeatRequestSchema>;
+/** The same payload after defaults are applied — a valid `IngestEvent`. */
+export type HeartbeatEvent = z.infer<typeof heartbeatRequestSchema>;
+
+/** Response from the heartbeat endpoint. Exactly one event, so 0 or 1 each. */
+export const heartbeatResponseSchema = z.object({
+  inserted: z.number().int().min(0).max(1),
+  skipped: z.number().int().min(0).max(1),
+});
+export type HeartbeatResponse = z.infer<typeof heartbeatResponseSchema>;

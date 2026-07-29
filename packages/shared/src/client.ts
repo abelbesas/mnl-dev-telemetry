@@ -1,14 +1,19 @@
 import {
   eventBatchSchema,
+  heartbeatRequestSchema,
+  heartbeatResponseSchema,
   ingestResponseSchema,
+  type HeartbeatRequest,
+  type HeartbeatResponse,
   type IngestEvent,
   type IngestResponse,
 } from "./events";
 
 /**
- * Minimal typed client for the ingestion API. Used by the git hooks (Phase 2)
- * and MCP server (Phase 3). Kept dependency-free (global `fetch`) so it can run
- * inside a 2s git-hook budget without loading heavy deps.
+ * Minimal typed client for the ingestion API. Used by the git hooks (Phase 2),
+ * the MCP server (Phase 3) and the VS Code extension's heartbeat sender
+ * (Phase 6). Kept dependency-free (global `fetch`) so it can run inside a 2s
+ * git-hook budget without loading heavy deps.
  */
 
 export interface IngestClientOptions {
@@ -46,10 +51,8 @@ export class IngestClient {
     this.timeoutMs = opts.timeoutMs;
   }
 
-  /** Send a batch of events. Validates locally before hitting the network. */
-  async sendEvents(events: IngestEvent[]): Promise<IngestResponse> {
-    const body = eventBatchSchema.parse({ events });
-
+  /** Authenticated JSON POST with the configured timeout budget. */
+  private async post(path: string, body: unknown): Promise<unknown> {
     const controller = this.timeoutMs ? new AbortController() : undefined;
     const timer =
       controller && this.timeoutMs
@@ -57,7 +60,7 @@ export class IngestClient {
         : undefined;
 
     try {
-      const res = await this.fetchImpl(`${this.baseUrl}/api/ingest/events`, {
+      const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -75,9 +78,29 @@ export class IngestClient {
           json,
         );
       }
-      return ingestResponseSchema.parse(json);
+      return json;
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
+
+  /** Send a batch of events. Validates locally before hitting the network. */
+  async sendEvents(events: IngestEvent[]): Promise<IngestResponse> {
+    const body = eventBatchSchema.parse({ events });
+    return ingestResponseSchema.parse(
+      await this.post("/api/ingest/events", body),
+    );
+  }
+
+  /**
+   * Send one editor heartbeat (Phase 6 §4a). Single event, no batching — a
+   * dropped ping is genuinely fine (the next one is ~5 minutes away), so unlike
+   * the git hooks there is no spool behind this.
+   */
+  async sendHeartbeat(heartbeat: HeartbeatRequest): Promise<HeartbeatResponse> {
+    const body = heartbeatRequestSchema.parse(heartbeat);
+    return heartbeatResponseSchema.parse(
+      await this.post("/api/ingest/heartbeat", body),
+    );
   }
 }

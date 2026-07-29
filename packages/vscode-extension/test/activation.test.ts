@@ -195,6 +195,15 @@ describe("activation", () => {
     );
   });
 
+  it("leaves heartbeats off on a machine that is not set up (§4a: no nagging)", async () => {
+    const ext = loadExtension();
+    ext.activate(fakeContext(new Map([["devpulse.welcomeDismissed", true]])));
+    await settle();
+
+    await fake.__commands.get("devpulse.status")?.();
+    expect(fake.__output.join("\n")).toContain("heartbeat:        off");
+  });
+
   it("disposes cleanly", async () => {
     const ext = loadExtension();
     const ctx = fakeContext();
@@ -305,6 +314,19 @@ describe("an installed machine, in a repo", () => {
     expect(text).toContain("← DevPulse");
     expect(text).not.toContain("scratch-token");
   });
+
+  it("starts heartbeats once state detection says active (§4a)", async () => {
+    const ext = loadExtension();
+    ext.activate(fakeContext());
+    await settle();
+
+    await fake.__commands.get("devpulse.status")?.();
+    expect(fake.__output.join("\n")).toMatch(
+      /heartbeat: {8}on — every 5 min while editing, stops after 5 min idle/,
+    );
+    // And the tooltip discloses it, so a dev can see what is being sent.
+    expect(fake.__statusBar[0]?.tooltip?.value).toContain("Heartbeat: every 5 min");
+  });
 });
 
 /**
@@ -354,6 +376,11 @@ describe("uninstall from the palette", () => {
     expect(fs.existsSync(path.join(home, "credentials"))).toBe(false);
     expect(fs.existsSync(path.join(home, "hooks"))).toBe(false);
     expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse: Set up");
+
+    // Uninstalling must also silence heartbeats, not just the status bar.
+    fake.__output.length = 0;
+    await fake.__commands.get("devpulse.status")?.();
+    expect(fake.__output.join("\n")).toContain("heartbeat:        off");
   });
 
   it("does nothing when the confirmation is dismissed", async () => {

@@ -13,6 +13,10 @@ visibility in the status bar. Works in VS Code and Cursor.
   Hover for the dashboard URL, token label and last event sent.
 - **Branch nudge** — if the branch name carries no issue key, the status bar says
   so, because time then groups by repo + branch instead of a ticket.
+- **Heartbeats** — a presence ping every 5 minutes *while you're actually
+  editing*, so a session starts when you started working rather than at your
+  first commit, and keeps counting after your last one. Stops automatically after
+  5 minutes without an edit, so an editor left open overnight logs nothing.
 - **Commands** (`DevPulse:` in the command palette) — Enable, Show status,
   Open dashboard, Open current task, Uninstall.
 
@@ -20,9 +24,10 @@ visibility in the status bar. Works in VS Code and Cursor.
 
 - It does not read your code, diffs, file paths or prompts. Events carry
   metadata only (repo basename, branch, issue key, timestamps, diff counts).
-- It does not send anything itself. The git hooks do, and they are
-  machine-global — telemetry keeps flowing even if this extension is disabled or
-  uninstalled.
+  Document edits are used only to stamp a clock — never the file name or contents.
+- The only thing it sends on its own is a heartbeat: repo basename, branch and a
+  timestamp. Commits, pushes and branch switches come from the machine-global git
+  hooks, which keep working even if this extension is disabled.
 - It never holds Jira or Tempo credentials. Only the server does.
 
 The agent token lives in `~/.devpulse/credentials` (mode 0600), written by the

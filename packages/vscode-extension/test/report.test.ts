@@ -56,4 +56,23 @@ describe("statusReportLines", () => {
   it("stays plain text — no markdown escapes leak in", () => {
     expect(report({ name: "acme-web", branch: "main" })).not.toContain("`");
   });
+
+  it("states the heartbeat cadence and idle rule when running", () => {
+    const on = statusReportLines({
+      state: "active",
+      status,
+      dashboardUrl: "https://dash.example",
+      repo: { name: "acme-web", branch: "main" },
+      now: NOW,
+      heartbeatRunning: true,
+    }).join("\n");
+    expect(on).toContain("heartbeat:        on — every 5 min while editing");
+    expect(on).toContain("stops after 5 min idle");
+  });
+
+  it("says off when heartbeats are not running", () => {
+    expect(report({ name: "acme-web", branch: "main" })).toContain(
+      "heartbeat:        off",
+    );
+  });
 });

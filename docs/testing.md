@@ -104,7 +104,7 @@ No server or DB required — these are pure unit tests:
 pnpm test
 ```
 
-Expect **140 passing** (21 shared + 37 dashboard + 28 setup-cli + 54
+Expect **192 passing** (31 shared + 49 dashboard + 28 setup-cli + 84
 vscode-extension).
 
 ### 8. Shut down
@@ -163,6 +163,62 @@ machine` when you're done (or skip it if you're already set up for real).
 
 Refresh the dashboard timeline after step 7 — pages re-stitch on load, so the
 commit shows up without waiting for cron.
+
+### Heartbeats (the accuracy fix)
+
+The idle rule, the payload and the pacing are all unit- and integration-tested,
+and the endpoint itself is `curl`-verifiable without any editor:
+
+```bash
+# 401 without a token
+curl -s -o /dev/stdout -w " HTTP %{http_code}\n" \
+  -X POST http://localhost:3000/api/ingest/heartbeat \
+  -H 'content-type: application/json' \
+  -d '{"event_uuid":"eb21a3b7-2066-4db7-99df-375675a95147","ts":"2026-07-29T02:00:00.000Z","repo":"acme-web","branch":"TEX-123-x"}'
+```
+
+```bash
+# 200 {"inserted":1,...} with a seeded token; run twice to see skipped:1
+curl -s -X POST http://localhost:3000/api/ingest/heartbeat \
+  -H "authorization: Bearer $DEVPULSE_TOKEN" -H 'content-type: application/json' \
+  -d '{"event_uuid":"eb21a3b7-2066-4db7-99df-375675a95147","ts":"2026-07-29T02:00:00.000Z","repo":"acme-web","branch":"TEX-123-x"}'
+```
+
+What's worth checking by hand in the editor:
+
+| # | Do | Expect |
+|---|---|---|
+| H1 | With DevPulse active, run `DevPulse: Show status` | `heartbeat: on — every 5 min while editing, stops after 5 min idle` |
+| H2 | Hover the status bar item | Tooltip discloses "Heartbeat: every 5 min while you're editing — repo + branch only" |
+| H3 | Edit a file in a git repo, wait ~5 min, then check the DB (query below) | One `heartbeat` row, `source=extension`, repo + branch only, `metadata={}` |
+| H4 | Keep editing for 20 minutes | ~4–5 rows, one per interval — not one per keystroke |
+| H5 | Stop touching the editor for 20 minutes (leave it open) | **No new rows.** This is the check that matters most |
+| H6 | Type again | Pings resume within a minute |
+| H7 | Run `DevPulse: Uninstall from this machine` | Status shows `heartbeat: off`; no further rows |
+
+```bash
+docker exec devpulse-postgres psql -U devpulse -d devpulse \
+  -c "select ts, repo, branch, issue_key, metadata from events where type='heartbeat' order by ts desc limit 10;"
+```
+
+Patience is optional: temporarily lower `HEARTBEAT_INTERVAL_MINUTES` and
+`HEARTBEAT_IDLE_MINUTES` in `packages/shared/src/config.ts` (to 1) and rebuild —
+the shared constants drive both the sender and the tests.
+
+**The headline check** — that work before a commit stops reading as zero:
+
+```bash
+# in a TEX-xxx-* branch: edit, let a ping or two land, then commit once
+git commit -am "wip"
+curl -s -X POST http://localhost:3000/api/cron/stitch; echo
+docker exec devpulse-postgres psql -U devpulse -d devpulse \
+  -c "select issue_key, started_at::time, ended_at::time, event_count, reported_seconds/60 as min from task_sessions order by started_at desc limit 5;"
+```
+
+The session must start at the first heartbeat, not at the commit. Note the
+session only earns *reported* minutes inside working hours (09:00–18:00 in the
+user's tz) — a late-night test will correctly show 0 reported despite a real raw
+span.
 
 ---
 

@@ -2,7 +2,7 @@
   "name": "devpulse-vscode",
   "displayName": "DevPulse",
   "description": "One-click DevPulse setup and current-task visibility, right in the editor.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "//": "private:true keeps this out of npm; `vsce package` is unaffected by it. Set a real marketplace publisher id before `vsce publish` (docs/phase-6-notes.md).",
   "private": true,
   "publisher": "devpulse",

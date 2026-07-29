@@ -20,5 +20,20 @@ export const WORKDAY_END = "18:00";
 /** Max events accepted in a single ingestion batch. Guards against runaway loops. */
 export const MAX_EVENTS_PER_BATCH = 500;
 
+/**
+ * Editor heartbeat cadence (Phase 6 §4a). Must stay well under
+ * STITCH_GAP_MINUTES so a stream of pings never trips the session gap — that
+ * relationship is the whole reason heartbeats fix the "session starts at the
+ * first commit" under-count, so both numbers live here together.
+ */
+export const HEARTBEAT_INTERVAL_MINUTES = 5;
+
+/**
+ * How long after the last real edit the editor is still considered "working".
+ * Past this, heartbeats stop — otherwise an editor left open overnight would log
+ * phantom hours and poison the exact metric heartbeats exist to fix.
+ */
+export const HEARTBEAT_IDLE_MINUTES = 5;
+
 /** Prefix for generated agent tokens, for easy recognition / grepping. */
 export const AGENT_TOKEN_PREFIX = "dp_";

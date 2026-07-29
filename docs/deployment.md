@@ -117,14 +117,14 @@ marketplace, no approval:
 ```bash
 pnpm install
 pnpm --filter devpulse-vscode package
-# → packages/vscode-extension/devpulse-vscode-0.1.0.vsix
+# → packages/vscode-extension/devpulse-vscode-0.2.0.vsix
 ```
 
 On their machine:
 
 1. Install it — Extensions panel → `···` → **Install from VSIX…**, or:
    ```bash
-   code --install-extension devpulse-vscode-0.1.0.vsix
+   code --install-extension devpulse-vscode-0.2.0.vsix
    ```
    (Cursor: same panel.)
 2. If the deployed URL isn't the packaged default, set **`devpulse.dashboardUrl`**
@@ -140,14 +140,22 @@ On their machine:
 5. The status bar shows the current branch's ticket (e.g. `TEX-123`). They commit
    in **any** repo (nothing is added to the repo) → events flow to the deployed
    dashboard; the timeline/task pages re-stitch on load, so a refresh shows it.
+6. **Heartbeats start automatically** — a ping every 5 minutes while they're
+   editing, so their sessions start when work started instead of at the first
+   commit. Nothing to configure; it stops after 5 minutes idle.
 
 Uninstall from the palette: `DevPulse: Uninstall from this machine` (restores any
 prior global hooks path). Removing the *extension* does not stop telemetry — the
 git hooks are machine-global; run the uninstall command first.
 
-The extension does exactly what the CLI does — it imports the same
+For setup the extension does exactly what the CLI does — it imports the same
 install/uninstall code and ships the same `agent.js` (verified byte-identical,
-docs/phase-6-notes.md). It sends nothing itself and reads no code.
+docs/phase-6-notes.md). The one thing it adds is the heartbeat, which carries repo
+basename + branch + timestamp and nothing else. It reads no code.
+
+**Editor users get materially better numbers than CLI-only users**, because
+git-only data starts a session at the first commit and ends it at the last. If
+accuracy matters for someone's tickets, get them on the extension.
 
 ### 5b. Raw CLI (fallback — no VS Code, or scripted setup)
 
