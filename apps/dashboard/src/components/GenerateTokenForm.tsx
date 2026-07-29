@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "@/components/Toaster";
 
 export interface TokenState {
   token?: string;
@@ -22,6 +23,11 @@ export function GenerateTokenForm({
     action,
     {},
   );
+
+  useEffect(() => {
+    if (state.token) toast(`Agent token "${state.label ?? "new"}" created`);
+    else if (state.error) toast(state.error, "error");
+  }, [state]);
 
   return (
     <div>

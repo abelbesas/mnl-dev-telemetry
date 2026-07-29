@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { signOut } from "@/auth";
 import { Nav } from "@/components/Nav";
+import { Toaster } from "@/components/Toaster";
 import { requireUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -38,6 +39,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <main className="content">{children}</main>
+      <Toaster />
     </div>
   );
 }

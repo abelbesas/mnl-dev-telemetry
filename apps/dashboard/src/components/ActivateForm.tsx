@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useToastOnResult } from "@/components/Toaster";
 
 export interface ActivateState {
   ok?: boolean;
@@ -17,6 +18,7 @@ export function ActivateForm({
     action,
     {},
   );
+  useToastOnResult(state);
 
   return (
     <form action={formAction}>

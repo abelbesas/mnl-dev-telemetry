@@ -3,6 +3,11 @@ import {
   GenerateTokenForm,
   type TokenState,
 } from "@/components/GenerateTokenForm";
+import { RevokeTokenButton } from "@/components/RevokeTokenButton";
+import {
+  WorkingHoursForm,
+  type SettingsState,
+} from "@/components/WorkingHoursForm";
 import { formatDay } from "@/lib/format";
 import {
   getUser,
@@ -45,15 +50,22 @@ export default async function SettingsPage() {
     return { token, label };
   }
 
-  async function revoke(formData: FormData) {
+  async function revoke(
+    _state: SettingsState,
+    formData: FormData,
+  ): Promise<SettingsState> {
     "use server";
     const u = await requireUser();
     const tokenId = String(formData.get("tokenId"));
     await revokeToken(u.id, tokenId);
     revalidatePath("/settings");
+    return { ok: true, message: "Token revoked" };
   }
 
-  async function saveSettings(formData: FormData) {
+  async function saveSettings(
+    _state: SettingsState,
+    formData: FormData,
+  ): Promise<SettingsState> {
     "use server";
     const u = await requireUser();
     const tz = String(formData.get("tz") ?? "Asia/Manila");
@@ -61,6 +73,7 @@ export default async function SettingsPage() {
     const end = String(formData.get("workdayEnd") ?? "18:00");
     await updateWorkingHours(u.id, tz, start, end);
     revalidatePath("/settings");
+    return { ok: true, message: "Working hours updated" };
   }
 
   return (
@@ -73,38 +86,13 @@ export default async function SettingsPage() {
       <div className="grid cols-2" style={{ marginBottom: "1.5rem" }}>
         <div className="card">
           <h3>Working hours</h3>
-          <form action={saveSettings}>
-            <label className="field">
-              <span>Timezone</span>
-              <select name="tz" defaultValue={user.tz}>
-                {TIMEZONES.includes(user.tz) ? null : (
-                  <option value={user.tz}>{user.tz}</option>
-                )}
-                {TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="row">
-              <label className="field">
-                <span>Start</span>
-                <input type="time" name="workdayStart" defaultValue={user.workdayStart} />
-              </label>
-              <label className="field">
-                <span>End</span>
-                <input type="time" name="workdayEnd" defaultValue={user.workdayEnd} />
-              </label>
-            </div>
-            <button className="btn" type="submit">
-              Save working hours
-            </button>
-            <p className="muted" style={{ fontSize: "0.8rem", marginTop: "0.6rem" }}>
-              Re-runs of the stitcher will clamp your sessions to this window
-              (Mon–Fri).
-            </p>
-          </form>
+          <WorkingHoursForm
+            action={saveSettings}
+            timezones={TIMEZONES}
+            tz={user.tz}
+            workdayStart={user.workdayStart}
+            workdayEnd={user.workdayEnd}
+          />
         </div>
 
         <div className="card">
@@ -149,12 +137,7 @@ export default async function SettingsPage() {
                   </td>
                   <td className="num">
                     {t.revokedAt ? null : (
-                      <form action={revoke}>
-                        <input type="hidden" name="tokenId" value={t.id} />
-                        <button className="btn danger" type="submit">
-                          Revoke
-                        </button>
-                      </form>
+                      <RevokeTokenButton action={revoke} tokenId={t.id} />
                     )}
                   </td>
                 </tr>

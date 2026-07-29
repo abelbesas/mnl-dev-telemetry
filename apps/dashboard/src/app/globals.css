@@ -45,6 +45,27 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Every interactive control gets a pointer; disabled ones don't. */
+a[href],
+button,
+select,
+summary,
+label[role="button"],
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+button:disabled,
+input:disabled,
+select:disabled,
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 h1 {
   font-size: 1.4rem;
   margin: 0 0 0.25rem;
@@ -377,4 +398,65 @@ label.field span {
   border-radius: 3px;
   margin-right: 0.35rem;
   vertical-align: middle;
+}
+
+/* --- Toasts ------------------------------------------------------------ */
+
+.toast-stack {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  min-width: 220px;
+  max-width: 360px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+  animation: toast-in 0.18s ease-out;
+}
+.toast.success {
+  border-left-color: var(--good);
+}
+.toast.error {
+  border-left-color: var(--bad);
+}
+.toast.info {
+  border-left-color: var(--accent);
+}
+.toast::before {
+  font-weight: 700;
+}
+.toast.success::before {
+  content: "✓";
+  color: var(--good);
+}
+.toast.error::before {
+  content: "!";
+  color: var(--bad);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
