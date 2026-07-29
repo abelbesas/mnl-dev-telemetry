@@ -8,6 +8,11 @@ import {
   formatDuration,
   toHours,
 } from "@/lib/format";
+import {
+  filterSessions,
+  parseTimelineFilters,
+  TimelineFilters,
+} from "@/components/TimelineFilters";
 import { getUser, getUserSessions } from "@/lib/queries";
 import { weekRange } from "@/lib/range";
 import { requireUser } from "@/lib/session";
@@ -17,7 +22,12 @@ import type { TaskSessionRow } from "@/db/schema";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function TimelinePage() {
+export default async function TimelinePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ticketed?: string; nonzero?: string }>;
+}) {
+  const filters = parseTimelineFilters(await searchParams);
   const sessionUser = await requireUser();
   const user = (await getUser(sessionUser.id))!;
   const tz = user.tz;
@@ -33,8 +43,15 @@ export default async function TimelinePage() {
     console.error("timeline: on-load stitch failed", err);
   }
 
-  const sessions = await getUserSessions(sessionUser.id, range);
+  const allSessions = await getUserSessions(sessionUser.id, range);
 
+  // A session with no issue key came from a branch that didn't follow the
+  // convention (main, fix-stuff, …), so it can't attach to a ticket.
+  const noKeyCount = allSessions.filter((s) => !s.issueKey).length;
+  const sessions = filterSessions(allSessions, filters);
+  const hiddenCount = allSessions.length - sessions.length;
+
+  // Stats reflect what's on screen, so the numbers always match the rows.
   const totalReported = sessions.reduce((a, s) => a + s.reportedSeconds, 0);
   const aiReported = sessions
     .filter((s) => s.aiAssisted)
@@ -59,6 +76,12 @@ export default async function TimelinePage() {
           This week ({formatDay(range.from, tz)} – today), {tz}.
         </p>
       </div>
+
+      <TimelineFilters
+        state={filters}
+        hiddenCount={hiddenCount}
+        noKeyCount={noKeyCount}
+      />
 
       <div className="grid cols-3" style={{ marginBottom: "1.5rem" }}>
         <div className="card stat">
@@ -89,8 +112,9 @@ export default async function TimelinePage() {
 
       {sessions.length === 0 ? (
         <div className="notice">
-          No sessions this week yet. Commit on an instrumented machine (or run the
-          demo seed) and the stitcher will populate your timeline.
+          {allSessions.length > 0
+            ? "Every session this week was filtered out. Clear the filters to see them."
+            : "No sessions this week yet. Commit on an instrumented machine (or run the demo seed) and the stitcher will populate your timeline."}
         </div>
       ) : null}
 
