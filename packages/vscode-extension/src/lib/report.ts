@@ -1,3 +1,7 @@
+import {
+  HEARTBEAT_IDLE_MINUTES,
+  HEARTBEAT_INTERVAL_MINUTES,
+} from "@devpulse/shared";
 import type { DevpulseStatus } from "@devpulse/setup";
 import { formatLastSend, issueKeyForRepo, type RepoContext } from "./presentation";
 import type { SetupState } from "./state";
@@ -14,6 +18,8 @@ export function statusReportLines(input: {
   dashboardUrl: string;
   repo: RepoContext | null;
   now: Date;
+  /** Whether the heartbeat timer is currently ticking. */
+  heartbeatRunning?: boolean;
 }): string[] {
   const { status } = input;
   const issueKey = issueKeyForRepo(input.repo);
@@ -45,6 +51,11 @@ export function statusReportLines(input: {
     `  spooled events:   ${status.spoolCount}`,
     `  ${formatLastSend(status.lastSend, input.now, { markdown: false })}`,
     `  setting URL:      ${normalizeDashboardUrl(input.dashboardUrl)}`,
+    `  heartbeat:        ${
+      input.heartbeatRunning
+        ? `on — every ${HEARTBEAT_INTERVAL_MINUTES} min while editing, stops after ${HEARTBEAT_IDLE_MINUTES} min idle`
+        : "off"
+    }`,
     `  this window:      ${
       input.repo?.branch
         ? `${input.repo.name ?? "(repo)"} on ${input.repo.branch}${

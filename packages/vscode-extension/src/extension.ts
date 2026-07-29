@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getStatus, type DevpulseStatus } from "@devpulse/setup";
 import { GitContext } from "./git-context";
+import { HeartbeatSender } from "./heartbeat";
 import {
   issueKeyForRepo,
   statusPresentation,
@@ -18,11 +19,14 @@ import { runEnableFlow, runUninstallFlow } from "./setup-flow";
 import { DevPulseStatusBar } from "./status-bar";
 
 /**
- * DevPulse for VS Code / Cursor — a thin wrapper around `@devpulse/setup`
- * (docs/phase-6-extension-brief.md). It makes setup one click and shows the
- * current task in the status bar; it never sends telemetry itself, never reads
- * code, and never holds Jira/Tempo credentials. Git hooks are machine-global, so
- * if this extension is disabled telemetry keeps flowing.
+ * DevPulse for VS Code / Cursor (docs/phase-6-extension-brief.md). For setup and
+ * visibility it is a thin wrapper around `@devpulse/setup`; the one thing it
+ * sends on its own is a presence heartbeat (`heartbeat.ts`, §4a), which is what
+ * stops sessions from starting at the first commit and ending at the last.
+ *
+ * It never reads code and never holds Jira/Tempo credentials. Git hooks are
+ * machine-global, so if this extension is disabled commit telemetry keeps
+ * flowing — only the heartbeat accuracy is editor-bound.
  *
  * Activation does no fs, git or network work — everything is deferred to a
  * microtask after `activate()` returns (brief §6: <100ms activation budget).
@@ -43,6 +47,7 @@ class DevPulse implements vscode.Disposable {
   private readonly statusBar = new DevPulseStatusBar();
   private readonly git = new GitContext();
   private readonly channel: vscode.OutputChannel;
+  private readonly heartbeat: HeartbeatSender;
 
   private state: PresentationState = "checking";
   private status: DevpulseStatus | null = null;
@@ -54,7 +59,15 @@ class DevPulse implements vscode.Disposable {
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.channel = vscode.window.createOutputChannel("DevPulse");
-    this.disposables.push(this.channel, this.statusBar, this.git);
+    // Constructed here (cheap — it only subscribes to editor events) but not
+    // started until state detection confirms the machine is set up.
+    this.heartbeat = new HeartbeatSender(this.git, this.channel);
+    this.disposables.push(
+      this.channel,
+      this.statusBar,
+      this.git,
+      this.heartbeat,
+    );
     this.render();
   }
 
@@ -131,6 +144,11 @@ class DevPulse implements vscode.Disposable {
       }
       this.repo = await this.git.getRepoContext();
       this.render();
+      // Heartbeats only run on a set-up machine; a half-install or an uninstall
+      // silences them immediately (§4a: "if the user is not set up, send
+      // nothing").
+      if (this.state === "active") this.heartbeat.start();
+      else this.heartbeat.stop();
     } finally {
       this.refreshing = false;
       if (this.refreshQueued) {
@@ -218,6 +236,7 @@ class DevPulse implements vscode.Disposable {
       dashboardUrl: dashboardUrlSetting(),
       repo: this.repo,
       now: new Date(),
+      heartbeatRunning: this.heartbeat.running,
     })) {
       this.channel.appendLine(line);
     }

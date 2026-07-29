@@ -100,3 +100,40 @@ describe("RateLimiter", () => {
     expect(rl.check("b", 0).allowed).toBe(true);
   });
 });
+
+describe("toEventRow for a heartbeat (Phase 6 §4a)", () => {
+  /** What the route hands to toEventRow after zod applies its defaults. */
+  const hb = (overrides: Partial<IngestEvent> = {}): IngestEvent =>
+    ({
+      event_uuid: U1,
+      source: "extension",
+      type: "heartbeat",
+      ts,
+      repo: "acme-web",
+      branch: "TEX-123-add-widget",
+      metadata: {},
+      ...overrides,
+    }) as IngestEvent;
+
+  it("derives the issue key from the branch, with no special-casing", () => {
+    const row = toEventRow("user-1", hb());
+    expect(row.type).toBe("heartbeat");
+    expect(row.source).toBe("extension");
+    expect(row.issueKey).toBe("TEX-123");
+    expect(row.repo).toBe("acme-web");
+  });
+
+  it("stores an empty metadata object — presence carries no payload", () => {
+    expect(toEventRow("user-1", hb()).metadata).toEqual({});
+  });
+
+  it("keeps a keyless branch keyless rather than guessing", () => {
+    expect(toEventRow("user-1", hb({ branch: "main" })).issueKey).toBeNull();
+  });
+
+  it("tolerates a repo with no branch (detached HEAD)", () => {
+    const row = toEventRow("user-1", hb({ branch: undefined }));
+    expect(row.branch).toBeNull();
+    expect(row.issueKey).toBeNull();
+  });
+});

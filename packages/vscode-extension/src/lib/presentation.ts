@@ -1,4 +1,4 @@
-import { extractIssueKey } from "@devpulse/shared";
+import { extractIssueKey, HEARTBEAT_INTERVAL_MINUTES } from "@devpulse/shared";
 import type { DevpulseStatus, LastSend } from "@devpulse/setup";
 import { partialReason, type SetupState } from "./state";
 import { normalizeDashboardUrl, timelineUrl } from "./urls";
@@ -104,6 +104,8 @@ function activeFooter(input: PresentationInput): string[] {
     `Dashboard: [${url}](${timelineUrl(url)})`,
     `Token: ${label ? `\`${label}\`` : "(unlabelled)"}`,
     formatLastSend(input.status?.lastSend ?? null, input.now),
+    // Disclose the one thing the extension itself sends, and its scope.
+    `Heartbeat: every ${HEARTBEAT_INTERVAL_MINUTES} min while you're editing — repo + branch only`,
   ];
   const spooled = input.status?.spoolCount ?? 0;
   if (spooled > 0) {

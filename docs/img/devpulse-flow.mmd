@@ -1,0 +1,33 @@
+flowchart LR
+  subgraph DEV["💻 Dev machine — one-time install, works in every repo"]
+    direction TB
+    G["<b>Global git hooks</b><br/>commit · branch switch · push"]
+    X["<b>VS Code extension</b><br/>heartbeat every 5 min<br/>status bar = current ticket"]
+    M["<b>MCP server</b> 🔜<br/>agent task events"]
+  end
+
+  subgraph SRV["☁️ DevPulse service — Vercel + Postgres"]
+    direction TB
+    I["<b>Ingestion API</b><br/>write-only token"]
+    DB[("events<br/>append-only")]
+    S["<b>Stitcher</b><br/>45-min gap<br/>working-hours clamp<br/>AI flag"]
+    I --> DB --> S
+  end
+
+  subgraph UI["📊 Dashboard"]
+    direction TB
+    T["My timeline<br/><i>sessions + AI badge</i>"]
+    TD["Task detail<br/><i>estimate vs actual</i>"]
+    TM["Team view<br/><i>aggregates, leads only</i>"]
+  end
+
+  J["<b>Jira / Tempo</b> 🔜<br/>one-click log actual hours"]
+
+  G ==>|"metadata only<br/>no code · no paths"| I
+  X --> I
+  M -.-> I
+  S ==> UI
+  TD -.-> J
+
+  classDef soon stroke-dasharray:5 5,fill:#fafafa,color:#777,stroke:#bbb
+  class J,M soon
