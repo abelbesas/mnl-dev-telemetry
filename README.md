@@ -7,11 +7,12 @@ Full spec: [`docs/devpulse-mvp-brief.md`](docs/devpulse-mvp-brief.md). test
 ## What's here
 
 ```
-apps/dashboard/       Next.js app — UI + ingestion/auth/cron API routes, Drizzle schema
-packages/shared/      zod event schemas, issue-key regex, API client (the contract)
-packages/setup-cli/   npx @devpulse/setup — device-auth login, global git hooks, event agent
-infra/                docker-compose.yml (local Postgres)
-docs/                 spec, phase notes, deployment + testing guides
+apps/dashboard/            Next.js app — UI + ingestion/auth/cron API routes, Drizzle schema
+packages/shared/           zod event schemas, issue-key regex, API client (the contract)
+packages/setup-cli/        npx @devpulse/setup — device-auth login, global git hooks, event agent
+packages/vscode-extension/ DevPulse for VS Code / Cursor — one-click setup, current task in the status bar
+infra/                     docker-compose.yml (local Postgres)
+docs/                      spec, phase notes, deployment + testing guides
 ```
 
 ## Status
@@ -23,8 +24,9 @@ docs/                 spec, phase notes, deployment + testing guides
 | 3 | MCP server + Claude Code hooks | not started |
 | 4 | Session stitching, Auth.js SSO, timeline/task/team/settings | done |
 | 5 | Nightly drafts, approve UI, Tempo sync | not started |
+| 6 | VS Code / Cursor extension (pulled forward for the demo) | done |
 
-Phase notes: [`docs/phase-1-notes.md`](docs/phase-1-notes.md) · [`docs/phase-2-notes.md`](docs/phase-2-notes.md) · [`docs/phase-4-notes.md`](docs/phase-4-notes.md)
+Phase notes: [`docs/phase-1-notes.md`](docs/phase-1-notes.md) · [`docs/phase-2-notes.md`](docs/phase-2-notes.md) · [`docs/phase-4-notes.md`](docs/phase-4-notes.md) · [`docs/phase-6-notes.md`](docs/phase-6-notes.md)
 
 ## Quick start
 

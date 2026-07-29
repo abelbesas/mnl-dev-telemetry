@@ -106,6 +106,51 @@ auto-provisions you), and confirm the timeline/team pages render.
 
 ## 5. Onboard a teammate (the payoff)
 
+Two paths. **Prefer the VS Code extension** — it's one file to share and one
+click to run. The raw CLI stays supported for anyone not in VS Code / Cursor.
+
+### 5a. VS Code / Cursor extension (recommended)
+
+Build the `.vsix` once and share the file (Slack, GitHub release). No
+marketplace, no approval:
+
+```bash
+pnpm install
+pnpm --filter devpulse-vscode package
+# → packages/vscode-extension/devpulse-vscode-0.1.0.vsix
+```
+
+On their machine:
+
+1. Install it — Extensions panel → `···` → **Install from VSIX…**, or:
+   ```bash
+   code --install-extension devpulse-vscode-0.1.0.vsix
+   ```
+   (Cursor: same panel.)
+2. If the deployed URL isn't the packaged default, set **`devpulse.dashboardUrl`**
+   in Settings to `https://<your-app>.vercel.app`. The default is
+   `https://mnl-dev-telemetry-dashboard.vercel.app`, so rebuild the VSIX with a
+   new default if your team's URL differs and you'd rather not have them set it.
+3. Click **Enable DevPulse** in the notification (or run
+   `DevPulse: Enable DevPulse on this machine` from the palette). The progress
+   notification shows a code — already copied to their clipboard — with an
+   **Open activation page** button.
+4. They sign in **as themselves** (their email), paste the code, approve → the
+   agent token binds to their user and lands in `~/.devpulse/credentials` (0600).
+5. The status bar shows the current branch's ticket (e.g. `TEX-123`). They commit
+   in **any** repo (nothing is added to the repo) → events flow to the deployed
+   dashboard; the timeline/task pages re-stitch on load, so a refresh shows it.
+
+Uninstall from the palette: `DevPulse: Uninstall from this machine` (restores any
+prior global hooks path). Removing the *extension* does not stop telemetry — the
+git hooks are machine-global; run the uninstall command first.
+
+The extension does exactly what the CLI does — it imports the same
+install/uninstall code and ships the same `agent.js` (verified byte-identical,
+docs/phase-6-notes.md). It sends nothing itself and reads no code.
+
+### 5b. Raw CLI (fallback — no VS Code, or scripted setup)
+
 Because the CLI bundles are self-contained (`dist/cli.js` + `dist/agent.js` run
 with bare `node`, no `node_modules`), a teammate needs **no repo checkout**:
 
@@ -124,8 +169,9 @@ with bare `node`, no `node_modules`), a teammate needs **no repo checkout**:
    deployed dashboard. Trigger a stitch (or wait for cron) and their timeline
    fills in.
 
-Uninstall on their machine: `node cli.js uninstall` (restores prior global
-hooks path).
+`node cli.js status` shows what's installed; `node cli.js uninstall` reverses it
+(restores prior global hooks path). Mixing paths is fine — both write the same
+`~/.devpulse`, and installs are idempotent.
 
 ---
 

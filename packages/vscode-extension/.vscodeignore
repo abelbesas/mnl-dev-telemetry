@@ -1,0 +1,15 @@
+# Everything the VSIX doesn't need. dist/extension.js + dist/agent.js are the
+# only code that ships (both self-contained bundles).
+.vscode/**
+.vscode-test/**
+.turbo/**
+*.vsix
+src/**
+test/**
+node_modules/**
+esbuild.mjs
+tsconfig.json
+vitest.config.ts
+**/*.map
+**/*.ts
+**/.DS_Store
