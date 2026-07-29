@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { BarChart } from "@/components/charts";
+import { EstimateForm, type EstimateState } from "@/components/EstimateForm";
 import {
   formatClock,
   formatDay,
@@ -32,15 +33,20 @@ export default async function TaskDetailPage({
 
   const detail = await getTaskDetail(user.id, issueKey);
 
-  async function saveEstimate(formData: FormData) {
+  async function saveEstimate(
+    _state: EstimateState,
+    formData: FormData,
+  ): Promise<EstimateState> {
     "use server";
     const u = await requireUser();
     const key = String(formData.get("issueKey"));
     const hours = Number(formData.get("hours"));
-    if (Number.isFinite(hours) && hours >= 0) {
-      await upsertEstimate(key, Math.round(hours * 3600), u.id);
+    if (!Number.isFinite(hours) || hours < 0) {
+      return { ok: false, message: "Enter a valid number of hours." };
     }
+    await upsertEstimate(key, Math.round(hours * 3600), u.id);
     revalidatePath(`/tasks/${encodeURIComponent(key)}`);
+    return { ok: true, message: `Estimate saved: ${hours}h on ${key}` };
   }
 
   if (!detail) {
@@ -148,23 +154,11 @@ export default async function TaskDetailPage({
         </div>
         <div className="card">
           <h3>Set estimate</h3>
-          <form action={saveEstimate}>
-            <input type="hidden" name="issueKey" value={issueKey} />
-            <label className="field">
-              <span>Estimate (hours)</span>
-              <input
-                type="number"
-                name="hours"
-                min="0"
-                step="0.25"
-                defaultValue={estimateSeconds ? toHours(estimateSeconds) : ""}
-                placeholder="e.g. 8"
-              />
-            </label>
-            <button className="btn" type="submit">
-              Save estimate
-            </button>
-          </form>
+          <EstimateForm
+            action={saveEstimate}
+            issueKey={issueKey}
+            defaultHours={estimateSeconds ? toHours(estimateSeconds) : ""}
+          />
           <p className="muted" style={{ fontSize: "0.8rem", marginTop: "0.75rem" }}>
             Estimates are a manual field in the MVP; Phase 5 populates them from
             Jira.
