@@ -45,7 +45,7 @@ export default async function LoginPage({
     <div className="login-wrap">
       <div className="card login-card">
         <div className="brand">
-          Dev<span>Pulse</span>
+          MnlDev<span>Telemetry</span>
         </div>
         <p className="muted" style={{ marginTop: 0 }}>
           Sign in to see your timeline and time drafts.
