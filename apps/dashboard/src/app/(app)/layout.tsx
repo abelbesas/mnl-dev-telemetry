@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { signOut } from "@/auth";
 import { Nav } from "@/components/Nav";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Toaster } from "@/components/Toaster";
 import { requireUser } from "@/lib/session";
 
@@ -22,17 +23,22 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </div>
         <Nav role={user.role} />
         <div className="sidebar-foot">
-          <div style={{ marginBottom: 6 }}>
-            {user.name}
-            <span className="badge role" style={{ marginLeft: 6 }}>
-              {user.role}
+          <ThemeToggle />
+          <div className="user-row">
+            {/* `name` falls back to the email for auto-provisioned users, so
+                only show the email line when it adds something. */}
+            <span className="user-name" title={user.name}>
+              {user.name}
             </span>
+            <span className="badge role">{user.role}</span>
           </div>
-          <div className="mono" style={{ fontSize: "0.72rem", marginBottom: 8 }}>
-            {user.email}
-          </div>
+          {user.email && user.email !== user.name ? (
+            <div className="user-email" title={user.email}>
+              {user.email}
+            </div>
+          ) : null}
           <form action={doSignOut}>
-            <button className="btn danger" type="submit" style={{ width: "100%" }}>
+            <button className="btn danger block" type="submit">
               Sign out
             </button>
           </form>
