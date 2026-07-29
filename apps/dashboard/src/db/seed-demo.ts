@@ -87,28 +87,28 @@ interface DemoUser {
 
 const DEMO_USERS: DemoUser[] = [
   {
-    email: "alice@devpulse.local",
+    email: "alice@mnl-dev-telemetry.local",
     name: "Alice Reyes",
     role: "dev",
     tickets: ["WEB-101", "WEB-102", "WEB-103"],
     aiBias: 0.85,
   },
   {
-    email: "bob@devpulse.local",
+    email: "bob@mnl-dev-telemetry.local",
     name: "Bob Santos",
     role: "dev",
     tickets: ["WEB-104", "API-201", "API-202"],
     aiBias: 0.5,
   },
   {
-    email: "carol@devpulse.local",
+    email: "carol@mnl-dev-telemetry.local",
     name: "Carol Cruz",
     role: "dev",
     tickets: ["API-203", "API-204", "PLAT-301"],
     aiBias: 0.15,
   },
   {
-    email: "dana@devpulse.local",
+    email: "dana@mnl-dev-telemetry.local",
     name: "Dana Lim",
     role: "lead",
     tickets: ["PLAT-302", "PLAT-301"],
@@ -320,15 +320,15 @@ async function main() {
 
   await sql.end();
 
-  console.log("DevPulse demo data seeded:");
+  console.log("MnlDevTelemetry demo data seeded:");
   console.log(`  users:     ${DEMO_USERS.length} (${DEMO_USERS.filter((u) => u.role === "lead").length} lead)`);
   console.log(`  events:    ${totalEvents}`);
   console.log(`  sessions:  ${totalSessions}`);
   console.log(`  estimates: ${estimateCount}`);
   console.log("");
   console.log("Dev login (DEV_LOGIN_ENABLED=true):");
-  console.log("  dev  → alice@devpulse.local");
-  console.log("  lead → dana@devpulse.local  (sees the Team view)");
+  console.log("  dev  → alice@mnl-dev-telemetry.local");
+  console.log("  lead → dana@mnl-dev-telemetry.local  (sees the Team view)");
 }
 
 main().catch((err) => {

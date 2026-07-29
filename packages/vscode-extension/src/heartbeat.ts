@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import * as vscode from "vscode";
-import { IngestClient } from "@devpulse/shared";
-import { readCredentials, devpulsePaths } from "@devpulse/setup";
+import { IngestClient } from "@mnl-dev-telemetry/shared";
+import { readCredentials, mnlDevTelemetryPaths } from "@mnl-dev-telemetry/setup";
 import type { GitContext } from "./git-context";
 import {
   HEARTBEAT_INTERVAL_MS,
@@ -92,7 +92,7 @@ export class HeartbeatSender implements vscode.Disposable {
   async tick(): Promise<void> {
     if (this.sending) return;
 
-    const paths = devpulsePaths();
+    const paths = mnlDevTelemetryPaths();
     const creds = readCredentials(paths.credentials);
     const repo = await this.git.getRepoContext();
 

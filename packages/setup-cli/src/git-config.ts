@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 
 /**
  * Thin wrappers over `git config --global core.hooksPath`. This is the ONLY git
- * setting DevPulse touches, and always at global scope so hooks apply across a
+ * setting MnlDevTelemetry touches, and always at global scope so hooks apply across a
  * dev's repos without ever being committed to one (spec §2, constraint 1).
  */
 

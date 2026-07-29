@@ -58,7 +58,7 @@ function fakeChannel(lines: string[] = []) {
 }
 
 beforeAll(async () => {
-  scratch = fs.mkdtempSync(path.join(os.tmpdir(), "devpulse-hb-test-"));
+  scratch = fs.mkdtempSync(path.join(os.tmpdir(), "mnl-dev-telemetry-hb-test-"));
   bundlePath = path.join(scratch, "heartbeat.cjs");
   await build({
     entryPoints: [path.join(here, "..", "src", "heartbeat.ts")],

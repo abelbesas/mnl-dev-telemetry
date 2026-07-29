@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { generateAgentToken, hashAgentToken } from "@devpulse/shared";
+import { generateAgentToken, hashAgentToken } from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import { agentTokens, auditLog, deviceAuthorizations } from "@/db/schema";
 

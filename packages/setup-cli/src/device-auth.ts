@@ -2,7 +2,7 @@ import {
   deviceStartResponseSchema,
   deviceTokenResponseSchema,
   type DeviceStartResponse,
-} from "@devpulse/shared";
+} from "@mnl-dev-telemetry/shared";
 import type { Credentials } from "./credentials";
 
 /**
@@ -58,7 +58,7 @@ export async function deviceLogin(
   opts.onCode?.(start);
 
   log("");
-  log("To connect this machine to DevPulse:");
+  log("To connect this machine to MnlDevTelemetry:");
   log(`  1. Open: ${start.verification_uri}`);
   log(`  2. Enter code: ${start.user_code}`);
   log("");

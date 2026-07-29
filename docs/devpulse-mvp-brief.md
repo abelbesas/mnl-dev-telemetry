@@ -1,4 +1,4 @@
-# DevPulse — MVP Build Brief
+# MnlDevTelemetry — MVP Build Brief
 
 A client-agnostic developer telemetry platform. It measures actual task time (and AI involvement) by instrumenting **our developers' machines and tools**, never the client's repos, workflows, or Jira. Data flows into our own platform; Jira/Tempo receive human-approved worklogs at the end.
 
@@ -15,7 +15,7 @@ This document is the working spec for building the MVP with Claude Code. Read it
 **Repository layout** (pnpm workspaces + Turborepo):
 
 ```
-devpulse/
+mnl-dev-telemetry/
 ├── CLAUDE.md                  # session ground rules (template in §9)
 ├── docs/
 │   └── devpulse-mvp-brief.md  # this file
@@ -23,8 +23,8 @@ devpulse/
 │   └── dashboard/             # Next.js app: UI + all API routes (ingestion + sync)
 ├── packages/
 │   ├── shared/                # zod schemas, event types, API client — single source of truth
-│   ├── mcp-server/            # @devpulse/mcp — MCP server + Claude Code hook scripts
-│   └── setup-cli/             # npx @devpulse/setup — token, git hooks, MCP config installer
+│   ├── mcp-server/            # @mnl-dev-telemetry/mcp — MCP server + Claude Code hook scripts
+│   └── setup-cli/             # npx @mnl-dev-telemetry/setup — token, git hooks, MCP config installer
 └── infra/
     └── docker-compose.yml     # local Postgres
 ```
@@ -94,19 +94,19 @@ Turns raw events into `task_sessions`. MVP algorithm, run on a schedule (cron ro
 
 ### 4.3 Git hooks + setup CLI (`packages/setup-cli`)
 
-`npx @devpulse/setup` does, idempotently:
+`npx @mnl-dev-telemetry/setup` does, idempotently:
 
 1. Device-auth style login: prints a dashboard URL + code; on approval the CLI receives an agent token; stores it in `~/.devpulse/credentials` (0600).
 2. Writes hook scripts to `~/.devpulse/hooks/` and sets global `core.hooksPath`. Hooks handled: `post-commit`, `post-checkout` (branch switch), `pre-push`. Each hook execs `node ~/.devpulse/agent.js <type>`, which builds the event (repo basename, branch, issue key, diff stats via `git diff --shortstat`) and POSTs it. **Fire-and-forget with a 2s timeout and local spool file on failure** (retried next invocation) — a hook must never block or break a dev's commit, even fully offline.
 3. Writes the MCP server entry into Claude Code and Cursor config files if present.
 4. Installs Claude Code hooks config (§4.4).
-5. `npx @devpulse/setup status` prints what's installed, token label, last event sent. `--uninstall` reverses everything.
+5. `npx @mnl-dev-telemetry/setup status` prints what's installed, token label, last event sent. `--uninstall` reverses everything.
 
 Edge case to handle: devs who already use `core.hooksPath` or husky — our hook scripts must chain-call any pre-existing hooks path if one was set (store the old value, exec it after ours).
 
 ### 4.4 MCP server + Claude Code hooks (`packages/mcp-server`)
 
-Runs as stdio MCP server: `npx @devpulse/mcp`. Tools (all thin wrappers that emit events / query the API):
+Runs as stdio MCP server: `npx @mnl-dev-telemetry/mcp`. Tools (all thin wrappers that emit events / query the API):
 
 - `task_start(issue_key)` / `task_stop()` — explicit task boundary events.
 - `get_my_tasks()` — reads the dev's open drafts/recent issue keys (this is the one read scope agent tokens get: own-data, current-day only).
@@ -130,8 +130,8 @@ Keep the UI minimal (shadcn/ui is fine). The charts that matter: compression rat
 ### 4.6 Jira/Tempo sync (`apps/dashboard/app/api/sync` + worker route)
 
 - Adapter interface: `resolveIssue(key)`, `createIssue(draft)`, `pushWorklog(draft)`. MVP implements one adapter: **our Jira Cloud + Tempo v4** (worklogs need numeric issue id — resolve via Jira API; verify current Tempo API docs during implementation).
-- Mirror tickets: if a draft's issue key belongs to a client project with no connection, create/find a mirror ticket in our Jira (label `devpulse-mirror`, custom field or description line holding the external key via `mirror_links`), and log time against the mirror.
-- Every synced worklog description is tagged `[devpulse]` + draft id for idempotency; sync retries are safe.
+- Mirror tickets: if a draft's issue key belongs to a client project with no connection, create/find a mirror ticket in our Jira (label `mnl-dev-telemetry-mirror`, custom field or description line holding the external key via `mirror_links`), and log time against the mirror.
+- Every synced worklog description is tagged `[mnl-dev-telemetry]` + draft id for idempotency; sync retries are safe.
 - Client Jira adapters: **out of scope for MVP** — but the adapter interface ships so they slot in later.
 
 ### 4.7 VS Code / Cursor extension
@@ -185,7 +185,7 @@ Stitching job per §4.2 with tests (gap handling, working-hours clamp, AI flag);
 *Accept:* seeded raw events produce expected sessions in tests; a dev sees only their own sessions; re-running stitching from scratch is deterministic.
 
 **Phase 5 — Drafts + one-click populate + Tempo sync.**
-Nightly draft rollup; Drafts screen with edit/approve; sync worker with our-Jira adapter, mirror-ticket logic, `[devpulse]` idempotency tag.
+Nightly draft rollup; Drafts screen with edit/approve; sync worker with our-Jira adapter, mirror-ticket logic, `[mnl-dev-telemetry]` idempotency tag.
 *Accept:* approving a draft creates a Tempo worklog against the right (or mirror) ticket exactly once, retries safe; dismissed drafts never sync.
 
 **Post-MVP (separate briefs later):** Phase 6 VS Code/Cursor extension · Phase 7 client Jira adapters · Phase 8 deeper AI-attribution (commit trailers analysis, Cursor hooks as their support matures).
@@ -195,7 +195,7 @@ Nightly draft rollup; Drafts screen with edit/approve; sync worker with our-Jira
 ## 9. CLAUDE.md template (place at repo root)
 
 ```md
-# DevPulse
+# MnlDevTelemetry
 Client-agnostic dev telemetry. Full spec: docs/devpulse-mvp-brief.md — read it first.
 
 ## Rules

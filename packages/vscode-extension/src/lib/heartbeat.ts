@@ -2,7 +2,7 @@ import {
   HEARTBEAT_IDLE_MINUTES,
   HEARTBEAT_INTERVAL_MINUTES,
   STITCH_GAP_MINUTES,
-} from "@devpulse/shared";
+} from "@mnl-dev-telemetry/shared";
 import type { RepoContext } from "./presentation";
 
 /**

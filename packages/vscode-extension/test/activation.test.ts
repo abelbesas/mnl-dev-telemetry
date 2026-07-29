@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
-import { runInstall } from "@devpulse/setup";
+import { runInstall } from "@mnl-dev-telemetry/setup";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createFakeVscode, type FakeVscode } from "./fake-vscode";
 
@@ -20,7 +20,7 @@ import { createFakeVscode, type FakeVscode } from "./fake-vscode";
  * saying, and the first-run notification.
  *
  * `DEVPULSE_HOME` / `GIT_CONFIG_GLOBAL` are pointed at a scratch dir so nothing
- * here reads or writes the developer's real DevPulse install or git config.
+ * here reads or writes the developer's real MnlDevTelemetry install or git config.
  */
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -57,7 +57,7 @@ async function settle(): Promise<void> {
 }
 
 beforeAll(async () => {
-  scratch = fs.mkdtempSync(path.join(os.tmpdir(), "devpulse-vsix-test-"));
+  scratch = fs.mkdtempSync(path.join(os.tmpdir(), "mnl-dev-telemetry-vsix-test-"));
   bundlePath = path.join(scratch, "extension.cjs");
   await build({
     entryPoints: [path.join(here, "..", "src", "extension.ts")],
@@ -134,7 +134,7 @@ describe("activation", () => {
     expect(elapsedMs).toBeLessThan(100);
     // Nothing has touched ~/.devpulse yet — state detection is deferred.
     expect(fs.existsSync(path.join(scratch, "home"))).toBe(false);
-    expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse");
+    expect(fake.__statusBar[0]?.text).toBe("$(pulse) MnlDevTelemetry");
   });
 
   it("shows the status bar item and registers every command", () => {
@@ -144,11 +144,11 @@ describe("activation", () => {
     expect(fake.__statusBar).toHaveLength(1);
     expect(fake.__statusBar[0]?.shown).toBe(true);
     expect([...fake.__commands.keys()].sort()).toEqual([
-      "devpulse.enable",
-      "devpulse.openCurrentTask",
-      "devpulse.openDashboard",
-      "devpulse.status",
-      "devpulse.uninstall",
+      "mnlDevTelemetry.enable",
+      "mnlDevTelemetry.openCurrentTask",
+      "mnlDevTelemetry.openDashboard",
+      "mnlDevTelemetry.status",
+      "mnlDevTelemetry.uninstall",
     ]);
   });
 
@@ -157,38 +157,38 @@ describe("activation", () => {
     ext.activate(fakeContext());
     await settle();
 
-    expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse: Set up");
-    expect(fake.__statusBar[0]?.command).toBe("devpulse.enable");
-    const welcome = fake.__messages.find((m) => /Enable DevPulse/.test(m.message));
-    expect(welcome?.items).toContain("Enable DevPulse");
+    expect(fake.__statusBar[0]?.text).toBe("$(pulse) MnlDevTelemetry: Set up");
+    expect(fake.__statusBar[0]?.command).toBe("mnlDevTelemetry.enable");
+    const welcome = fake.__messages.find((m) => /Enable MnlDevTelemetry/.test(m.message));
+    expect(welcome?.items).toContain("Enable MnlDevTelemetry");
   });
 
   it("respects a dismissed welcome notification", async () => {
-    const store = new Map<string, unknown>([["devpulse.welcomeDismissed", true]]);
+    const store = new Map<string, unknown>([["mnlDevTelemetry.welcomeDismissed", true]]);
     const ext = loadExtension();
     ext.activate(fakeContext(store));
     await settle();
 
     expect(fake.__messages).toHaveLength(0);
     // Status bar still updates — only the nagging is suppressed.
-    expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse: Set up");
+    expect(fake.__statusBar[0]?.text).toBe("$(pulse) MnlDevTelemetry: Set up");
   });
 
   it("opens the configured dashboard from the palette command", async () => {
     const ext = loadExtension();
-    ext.activate(fakeContext(new Map([["devpulse.welcomeDismissed", true]])));
+    ext.activate(fakeContext(new Map([["mnlDevTelemetry.welcomeDismissed", true]])));
     await settle();
 
-    await fake.__commands.get("devpulse.openDashboard")?.();
+    await fake.__commands.get("mnlDevTelemetry.openDashboard")?.();
     expect(fake.__opened).toEqual(["https://dash.example/timeline"]);
   });
 
   it("explains the missing issue key instead of opening a bogus task URL", async () => {
     const ext = loadExtension();
-    ext.activate(fakeContext(new Map([["devpulse.welcomeDismissed", true]])));
+    ext.activate(fakeContext(new Map([["mnlDevTelemetry.welcomeDismissed", true]])));
     await settle();
 
-    await fake.__commands.get("devpulse.openCurrentTask")?.();
+    await fake.__commands.get("mnlDevTelemetry.openCurrentTask")?.();
     expect(fake.__opened).toEqual([]);
     expect(fake.__messages.some((m) => /No git repository/.test(m.message))).toBe(
       true,
@@ -197,10 +197,10 @@ describe("activation", () => {
 
   it("leaves heartbeats off on a machine that is not set up (§4a: no nagging)", async () => {
     const ext = loadExtension();
-    ext.activate(fakeContext(new Map([["devpulse.welcomeDismissed", true]])));
+    ext.activate(fakeContext(new Map([["mnlDevTelemetry.welcomeDismissed", true]])));
     await settle();
 
-    await fake.__commands.get("devpulse.status")?.();
+    await fake.__commands.get("mnlDevTelemetry.status")?.();
     expect(fake.__output.join("\n")).toContain("heartbeat:        off");
   });
 
@@ -279,7 +279,7 @@ describe("an installed machine, in a repo", () => {
     // Active install → no first-run nagging.
     expect(fake.__messages).toHaveLength(0);
 
-    await fake.__commands.get("devpulse.openCurrentTask")?.();
+    await fake.__commands.get("mnlDevTelemetry.openCurrentTask")?.();
     expect(fake.__opened).toEqual(["https://dash.example/tasks/TEX-123"]);
   });
 
@@ -291,9 +291,9 @@ describe("an installed machine, in a repo", () => {
 
     git("checkout", "--quiet", "-b", "main");
     // Re-checking state is what a git event (or the focus/interval tick) drives.
-    await fake.__commands.get("devpulse.status")?.();
+    await fake.__commands.get("mnlDevTelemetry.status")?.();
 
-    expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse: no ticket");
+    expect(fake.__statusBar[0]?.text).toBe("$(pulse) MnlDevTelemetry: no ticket");
     expect(fake.__statusBar[0]?.backgroundColor).toEqual({
       id: "statusBarItem.warningBackground",
     });
@@ -307,11 +307,11 @@ describe("an installed machine, in a repo", () => {
     ext.activate(fakeContext());
     await settle();
 
-    await fake.__commands.get("devpulse.status")?.();
+    await fake.__commands.get("mnlDevTelemetry.status")?.();
     const text = fake.__output.join("\n");
     expect(text).toContain("state:            active");
     expect(text).toContain("post-commit, post-checkout, pre-push");
-    expect(text).toContain("← DevPulse");
+    expect(text).toContain("← MnlDevTelemetry");
     expect(text).not.toContain("scratch-token");
   });
 
@@ -320,7 +320,7 @@ describe("an installed machine, in a repo", () => {
     ext.activate(fakeContext());
     await settle();
 
-    await fake.__commands.get("devpulse.status")?.();
+    await fake.__commands.get("mnlDevTelemetry.status")?.();
     expect(fake.__output.join("\n")).toMatch(
       /heartbeat: {8}on — every 5 min while editing, stops after 5 min idle/,
     );
@@ -339,7 +339,7 @@ describe("uninstall from the palette", () => {
 
   beforeEach(async () => {
     const home = process.env.DEVPULSE_HOME!;
-    // A dev who already had a global hooks path (husky, custom) before DevPulse.
+    // A dev who already had a global hooks path (husky, custom) before MnlDevTelemetry.
     fs.writeFileSync(
       process.env.GIT_CONFIG_GLOBAL!,
       `[core]\n\thooksPath = ${PRIOR_HOOKS_PATH}\n`,
@@ -365,21 +365,21 @@ describe("uninstall from the palette", () => {
     const ext = loadExtension();
     ext.activate(fakeContext());
     await settle();
-    expect(fake.__statusBar[0]?.text).not.toBe("$(pulse) DevPulse: Set up");
+    expect(fake.__statusBar[0]?.text).not.toBe("$(pulse) MnlDevTelemetry: Set up");
 
-    fake.__answer(/Remove DevPulse/, "Uninstall");
-    await fake.__commands.get("devpulse.uninstall")?.();
+    fake.__answer(/Remove MnlDevTelemetry/, "Uninstall");
+    await fake.__commands.get("mnlDevTelemetry.uninstall")?.();
 
     expect(fs.readFileSync(process.env.GIT_CONFIG_GLOBAL!, "utf8")).toContain(
       PRIOR_HOOKS_PATH,
     );
     expect(fs.existsSync(path.join(home, "credentials"))).toBe(false);
     expect(fs.existsSync(path.join(home, "hooks"))).toBe(false);
-    expect(fake.__statusBar[0]?.text).toBe("$(pulse) DevPulse: Set up");
+    expect(fake.__statusBar[0]?.text).toBe("$(pulse) MnlDevTelemetry: Set up");
 
     // Uninstalling must also silence heartbeats, not just the status bar.
     fake.__output.length = 0;
-    await fake.__commands.get("devpulse.status")?.();
+    await fake.__commands.get("mnlDevTelemetry.status")?.();
     expect(fake.__output.join("\n")).toContain("heartbeat:        off");
   });
 
@@ -390,7 +390,7 @@ describe("uninstall from the palette", () => {
     await settle();
 
     // No __answer registered → the modal resolves to undefined (Cancel).
-    await fake.__commands.get("devpulse.uninstall")?.();
+    await fake.__commands.get("mnlDevTelemetry.uninstall")?.();
 
     expect(fs.existsSync(path.join(home, "credentials"))).toBe(true);
     expect(fs.readFileSync(process.env.GIT_CONFIG_GLOBAL!, "utf8")).toContain(

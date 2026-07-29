@@ -56,7 +56,7 @@ pnpm db:up            # Postgres 16 in Docker (needs Docker running)
 pnpm db:generate      # regenerate migration from schema (already committed)
 pnpm db:migrate
 pnpm db:seed          # prints a one-time plaintext agent token
-pnpm --filter @devpulse/dashboard dev
+pnpm --filter @mnl-dev-telemetry/dashboard dev
 pnpm test             # 31 tests (21 shared, 10 dashboard)
 ```
 

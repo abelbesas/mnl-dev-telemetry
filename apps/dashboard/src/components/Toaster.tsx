@@ -17,7 +17,7 @@ interface ToastItem {
   type: ToastType;
 }
 
-const TOAST_EVENT = "devpulse:toast";
+const TOAST_EVENT = "mnl-dev-telemetry:toast";
 let counter = 0;
 
 export function toast(message: string, type: ToastType = "success"): void {

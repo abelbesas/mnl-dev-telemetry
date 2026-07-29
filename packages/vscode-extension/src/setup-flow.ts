@@ -1,11 +1,11 @@
 import os from "node:os";
 import path from "node:path";
 import * as vscode from "vscode";
-import { runInstall, runUninstall } from "@devpulse/setup";
+import { runInstall, runUninstall } from "@mnl-dev-telemetry/setup";
 import { activateUrl, normalizeDashboardUrl } from "./lib/urls";
 
 /**
- * The "Enable DevPulse" and "Uninstall" flows: thin UI around the setup CLI's
+ * The "Enable MnlDevTelemetry" and "Uninstall" flows: thin UI around the setup CLI's
  * `runInstall` / `runUninstall` (brief §4 — import, don't shell out). Nothing
  * about device auth, hook installation, or credential storage is reimplemented
  * here; this file only decides what the human sees while that code runs.
@@ -48,7 +48,7 @@ export async function runEnableFlow(
   return vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: "DevPulse: setting up this machine",
+      title: "MnlDevTelemetry: setting up this machine",
       cancellable: true,
     },
     async (progress, token) => {
@@ -83,7 +83,7 @@ export async function runEnableFlow(
           return { ok: false, cancelled: true };
         }
         void vscode.window
-          .showErrorMessage(`DevPulse setup failed: ${message(err)}`, "Show log")
+          .showErrorMessage(`MnlDevTelemetry setup failed: ${message(err)}`, "Show log")
           .then((choice) => {
             if (choice === "Show log") channel.show(true);
           });
@@ -112,7 +112,7 @@ async function showActivationPrompt(
 
   await vscode.env.clipboard.writeText(userCode);
   const choice = await vscode.window.showInformationMessage(
-    `DevPulse: sign in and enter code ${userCode} to approve this machine. (Copied to your clipboard.)`,
+    `MnlDevTelemetry: sign in and enter code ${userCode} to approve this machine. (Copied to your clipboard.)`,
     "Open activation page",
     "Copy code again",
   );
@@ -128,11 +128,11 @@ export async function runUninstallFlow(
   channel: vscode.OutputChannel,
 ): Promise<boolean> {
   const confirm = await vscode.window.showWarningMessage(
-    "Remove DevPulse from this machine?",
+    "Remove MnlDevTelemetry from this machine?",
     {
       modal: true,
       detail:
-        "Deletes ~/.devpulse (agent, git hooks, spool and agent token) and restores any git hooks path that was set before DevPulse. Events already sent are unaffected.",
+        "Deletes ~/.devpulse (agent, git hooks, spool and agent token) and restores any git hooks path that was set before MnlDevTelemetry. Events already sent are unaffected.",
     },
     "Uninstall",
   );
@@ -148,12 +148,12 @@ export async function runUninstallFlow(
   } catch (err) {
     channel.appendLine(`✗ ${message(err)}`);
     void vscode.window
-      .showErrorMessage(`DevPulse uninstall failed: ${message(err)}`, "Show log")
+      .showErrorMessage(`MnlDevTelemetry uninstall failed: ${message(err)}`, "Show log")
       .then((choice) => {
         if (choice === "Show log") channel.show(true);
       });
     return false;
   }
-  void vscode.window.showInformationMessage("DevPulse removed from this machine.");
+  void vscode.window.showInformationMessage("MnlDevTelemetry removed from this machine.");
   return true;
 }

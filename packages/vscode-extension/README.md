@@ -1,11 +1,11 @@
-# DevPulse for VS Code
+# MnlDevTelemetry for VS Code
 
-One-click setup for [DevPulse](../../docs/devpulse-mvp-brief.md) and current-task
+One-click setup for [MnlDevTelemetry](../../docs/devpulse-mvp-brief.md) and current-task
 visibility in the status bar. Works in VS Code and Cursor.
 
 ## What it does
 
-- **Enable DevPulse** — installs the machine-global git hooks and completes the
+- **Enable MnlDevTelemetry** — installs the machine-global git hooks and completes the
   device-auth login: you approve once in the browser and you're done. No repo is
   ever modified.
 - **Status bar** — shows the issue key derived from the current branch
@@ -17,7 +17,7 @@ visibility in the status bar. Works in VS Code and Cursor.
   editing*, so a session starts when you started working rather than at your
   first commit, and keeps counting after your last one. Stops automatically after
   5 minutes without an edit, so an editor left open overnight logs nothing.
-- **Commands** (`DevPulse:` in the command palette) — Enable, Show status,
+- **Commands** (`MnlDevTelemetry:` in the command palette) — Enable, Show status,
   Open dashboard, Open current task, Uninstall.
 
 ## What it does *not* do
@@ -31,18 +31,18 @@ visibility in the status bar. Works in VS Code and Cursor.
 - It never holds Jira or Tempo credentials. Only the server does.
 
 The agent token lives in `~/.devpulse/credentials` (mode 0600), written by the
-same setup code the `devpulse-setup` CLI uses.
+same setup code the `mnl-dev-telemetry-setup` CLI uses.
 
 ## Settings
 
 | Setting | Default |
 |---|---|
-| `devpulse.dashboardUrl` | `https://mnl-dev-telemetry-dashboard.vercel.app` |
+| `mnlDevTelemetry.dashboardUrl` | `https://mnl-dev-telemetry-dashboard.vercel.app` |
 
 ## Install from a VSIX
 
 ```bash
-code --install-extension devpulse-vscode.vsix
+code --install-extension mnl-dev-telemetry-vscode.vsix
 ```
 
 Or: Extensions panel → `…` → **Install from VSIX…**. Cursor: same panel.
@@ -50,15 +50,15 @@ Or: Extensions panel → `…` → **Install from VSIX…**. Cursor: same panel.
 ## Develop
 
 ```bash
-pnpm --filter devpulse-vscode build     # dist/extension.js + dist/agent.js
-pnpm --filter devpulse-vscode watch     # rebuild on change
-pnpm --filter devpulse-vscode test      # vitest (pure logic)
-pnpm --filter devpulse-vscode package   # → devpulse-vscode.vsix
+pnpm --filter mnl-dev-telemetry-vscode build     # dist/extension.js + dist/agent.js
+pnpm --filter mnl-dev-telemetry-vscode watch     # rebuild on change
+pnpm --filter mnl-dev-telemetry-vscode test      # vitest (pure logic)
+pnpm --filter mnl-dev-telemetry-vscode package   # → mnl-dev-telemetry-vscode.vsix
 ```
 
 Open **this folder** (not the monorepo root) and press <kbd>F5</kbd> to launch an
 Extension Development Host. `.vscode/launch.json` already points `DEVPULSE_HOME`
 and `GIT_CONFIG_GLOBAL` at `.devpulse-dev/` inside this package, so enabling
-DevPulse in the dev host never touches your real install or global git config.
-Set `devpulse.dashboardUrl` to `http://localhost:3000` to test against a local
+MnlDevTelemetry in the dev host never touches your real install or global git config.
+Set `mnlDevTelemetry.dashboardUrl` to `http://localhost:3000` to test against a local
 dashboard.

@@ -2,10 +2,10 @@
 
 Scope delivered, in two parts:
 
-1. **Setup + visibility** — `packages/vscode-extension` (`devpulse-vscode`,
-   displayName **DevPulse**): one-click setup, a status bar item showing the
+1. **Setup + visibility** — `packages/vscode-extension` (`mnl-dev-telemetry-vscode`,
+   displayName **MnlDevTelemetry**): one-click setup, a status bar item showing the
    current branch's issue key, five palette commands, the branch-name nudge, and
-   a sideloadable `.vsix`. Plus the surgical `@devpulse/setup` changes that let
+   a sideloadable `.vsix`. Plus the surgical `@mnl-dev-telemetry/setup` changes that let
    the extension *import* the tested CLI logic instead of reimplementing it.
 2. **Heartbeats (§4a) — the accuracy payoff** — the `POST
    /api/ingest/heartbeat` route that spec §4.7 claimed existed but never did,
@@ -39,7 +39,7 @@ packages/setup-cli/
   test/device-auth.test.ts      # NEW: onCode/abort/denied/already-claimed (4 tests)
 
 packages/vscode-extension/
-  package.json                  # manifest: commands, devpulse.dashboardUrl, scripts
+  package.json                  # manifest: commands, mnlDevTelemetry.dashboardUrl, scripts
   esbuild.mjs                   # → dist/extension.js (CJS) + copies dist/agent.js
   .vscodeignore .vscode/{launch,tasks}.json README.md
   src/
@@ -62,9 +62,9 @@ docs/deployment.md §5           # now leads with the extension; CLI is the fall
 
 ## Key decisions
 
-- **Import the CLI, don't shell out** (brief §4). `@devpulse/setup` gained
+- **Import the CLI, don't shell out** (brief §4). `@mnl-dev-telemetry/setup` gained
   `src/index.ts` plus `main`/`types`/`exports` pointing at **source** — the same
-  pattern `@devpulse/shared` already uses, since both are workspace-internal and
+  pattern `@mnl-dev-telemetry/shared` already uses, since both are workspace-internal and
   their consumers bundle them. esbuild inlines `runInstall`/`runStatus`-data/
   `runUninstall`/`deviceLogin` (and zod) into `dist/extension.js`. The setup CLI
   still ships as its own two tsup bundles; nothing about its behaviour changed.
@@ -87,7 +87,7 @@ docs/deployment.md §5           # now leads with the extension; CLI is the fall
     poll loop checks it either side of each sleep. Without this, dismissing the
     progress notification would leave a loop polling for the code's full 10-min
     lifetime.
-  - `getStatus(): DevpulseStatus` — extracted from `runStatus()`, which now just
+  - `getStatus(): MnlDevTelemetryStatus` — extracted from `runStatus()`, which now just
     prints it. "What is installed" is defined once; the CLI and the extension
     tooltip can't drift.
 
@@ -98,7 +98,7 @@ docs/deployment.md §5           # now leads with the extension; CLI is the fall
   `git-context.ts` / `setup-flow.ts` are the only editor-aware files.
 
 - **Activation does no fs, git or network work at all** — not even a stat. It
-  creates the status bar item ("$(pulse) DevPulse"), registers commands and event
+  creates the status bar item ("$(pulse) MnlDevTelemetry"), registers commands and event
   listeners, then `setTimeout(0)` defers everything else. Measured **0.35 ms**
   against the 100 ms budget. The deferred `start()` wires `vscode.git`, runs the
   first state detection, and only then may show the welcome notification.
@@ -117,22 +117,22 @@ docs/deployment.md §5           # now leads with the extension; CLI is the fall
   - Which repo is "current": the one containing the active editor's document,
     else the first open repository.
 
-- **Status bar states.** The brief is in mild tension between §3.2 ("`DevPulse ✓`
+- **Status bar states.** The brief is in mild tension between §3.2 ("`MnlDevTelemetry ✓`
   when no key") and §3.5 ("keyless branch → subtle warning state"); §3.5 is the
   later, more specific refinement, so:
 
   | Situation | Text | Warning bg | Click |
   |---|---|---|---|
-  | state unknown (first ~50 ms) | `$(pulse) DevPulse` | no | Status |
-  | not installed | `$(pulse) DevPulse: Set up` | no | Enable |
-  | half-installed | `$(pulse) DevPulse: Finish setup` | **yes** | Enable |
+  | state unknown (first ~50 ms) | `$(pulse) MnlDevTelemetry` | no | Status |
+  | not installed | `$(pulse) MnlDevTelemetry: Set up` | no | Enable |
+  | half-installed | `$(pulse) MnlDevTelemetry: Finish setup` | **yes** | Enable |
   | active, branch has a key | `$(pulse) TEX-123` | no | Open current task |
-  | active, branch has no key | `$(pulse) DevPulse: no ticket` | **yes** | Open dashboard |
-  | active, no git repo open | `$(pulse) DevPulse ✓` | no | Open dashboard |
+  | active, branch has no key | `$(pulse) MnlDevTelemetry: no ticket` | **yes** | Open dashboard |
+  | active, no git repo open | `$(pulse) MnlDevTelemetry ✓` | no | Open dashboard |
 
   Tooltip always carries the dashboard URL (as a link), token label, last event
   sent (relative time, from `~/.devpulse/last-send.json`) and any offline spool
-  count. `DevPulse ✓` explicitly says hooks are machine-global, so an editor
+  count. `MnlDevTelemetry ✓` explicitly says hooks are machine-global, so an editor
   window without a repo isn't a problem.
 
 - **A third state — `partial` — beyond the brief's two.** The brief asks "creds
@@ -207,7 +207,7 @@ the next real edit with no restart.
   missed ping is cheaper than a double-counted one. Tested.
 - **No spool behind heartbeats**, unlike the git hooks. A dropped ping is
   genuinely fine: the next one is 5 minutes away, and the cost is 5 minutes of
-  precision, not a lost event. Failures log to the DevPulse output channel and
+  precision, not a lost event. Failures log to the MnlDevTelemetry output channel and
   are never surfaced to the dev.
 - **Heartbeats stop the moment the machine isn't `active`** — uninstall or a
   half-install silences them on the next refresh, asserted in the integration
@@ -277,7 +277,7 @@ the source.
 Pure logic (`test/{state,presentation,report,urls,heartbeat,no-vscode-imports}.test.ts`,
 59 tests): setup-state detection and its `partial` explanations; every status bar
 state including the issue key on a `TEX-123-*` branch and the nudge on `main`;
-issue-key extraction proven identical to `@devpulse/shared`'s `extractIssueKey`
+issue-key extraction proven identical to `@mnl-dev-telemetry/shared`'s `extractIssueKey`
 (the regex is never re-declared); relative-time and last-send formatting; URL
 normalisation; the whole idle rule including the literal "20 minutes untouched"
 acceptance check and the activity-scheme filter; and the editor-free guard on
@@ -296,7 +296,7 @@ events through the real subscriptions with `fetch` stubbed: payload shape,
 idle-out and resume, interval pacing, non-file schemes ignored, no-credentials
 and no-repo silence, and swallowed send failures. `DEVPULSE_HOME` and
 `GIT_CONFIG_GLOBAL` are always scratch paths — the suite never reads or writes a
-real DevPulse install or global git config.
+real MnlDevTelemetry install or global git config.
 
 Server-side (`apps/dashboard/test/heartbeat-stitch.test.ts` 8 tests +
 `test/ingest.test.ts` +4, `packages/shared/test/heartbeat.test.ts` 10 tests): the
@@ -320,8 +320,8 @@ privacy stripping, and `IngestClient.sendHeartbeat`'s URL and headers.
   scratch repo; live, the `vscode.git` `state.onDidChange` event drives it.
 - **Activation never blocks >100 ms**: measured **0.35 ms**, with an assertion at
   the 100 ms threshold and a check that `~/.devpulse` is untouched at that point.
-- **`pnpm --filter devpulse-vscode package` produces an installable `.vsix`** —
-  `devpulse-vscode-0.2.0.vsix`, 6 files, ~52 KB (manifest, readme,
+- **`pnpm --filter mnl-dev-telemetry-vscode package` produces an installable `.vsix`** —
+  `mnl-dev-telemetry-vscode-0.2.0.vsix`, 6 files, ~52 KB (manifest, readme,
   `dist/extension.js`, `dist/agent.js`).
 - **Device flow additions** (`onCode` fires before polling; abort stops the loop;
   denied / already-claimed surface as errors) — 4 new setup-cli tests.
@@ -357,16 +357,16 @@ machine state is proven identical to the CLI's.
 ```bash
 # build + package
 pnpm install
-pnpm --filter devpulse-vscode package     # → packages/vscode-extension/devpulse-vscode-0.2.0.vsix
+pnpm --filter mnl-dev-telemetry-vscode package     # → packages/vscode-extension/mnl-dev-telemetry-vscode-0.2.0.vsix
 
 # install for yourself or a teammate (works in Cursor too)
-code --install-extension packages/vscode-extension/devpulse-vscode-0.2.0.vsix
+code --install-extension packages/vscode-extension/mnl-dev-telemetry-vscode-0.2.0.vsix
 # or: Extensions panel → ··· → "Install from VSIX…"
 ```
 
 Share the `.vsix` over Slack or a GitHub release — no marketplace, no approval
 (brief §7). For the marketplace later: create a Microsoft publisher, replace the
-placeholder `publisher: "devpulse"` with the real id, add a LICENSE, then
+placeholder `publisher: "mnl-dev-telemetry"` with the real id, add a LICENSE, then
 `vsce publish`; Cursor users pull from Open VSX, so `ovsx publish` too.
 
 ### Demo script addition
@@ -376,8 +376,8 @@ Append to the Phase-4 demo (docs/phase-4-notes.md) — the onboarding story:
 ```
 1. "Onboarding used to be two files and a terminal command." → install the VSIX
    (Extensions → Install from VSIX…). Reload.
-2. Notification: "Enable DevPulse to track task time automatically?" → click
-   Enable DevPulse.
+2. Notification: "Enable MnlDevTelemetry to track task time automatically?" → click
+   Enable MnlDevTelemetry.
 3. Progress notification shows the code (already on the clipboard) → click
    "Open activation page" → sign in → paste the code → Approve.
 4. Status bar flips to the current branch's ticket, e.g. `$(pulse) TEX-123`.
@@ -385,7 +385,7 @@ Append to the Phase-4 demo (docs/phase-4-notes.md) — the onboarding story:
    "Heartbeat: every 5 min while you're editing — repo + branch only".
 5. Commit anything in any repo. Hover again → "Last event sent: just now".
 6. Click the status bar item → the dashboard opens straight to that task.
-7. `git checkout main` → status bar becomes "DevPulse: no ticket" with the
+7. `git checkout main` → status bar becomes "MnlDevTelemetry: no ticket" with the
    branch-naming nudge. Switch back → the ticket returns, no reload.
 ```
 
@@ -399,7 +399,7 @@ Then the accuracy payoff — the part that makes the numbers trustworthy:
 10. Refresh the dashboard timeline → the session starts when you STARTED WORKING,
     not at the commit, and keeps counting past it. Same commit, honest duration.
 11. Walk away for 20 minutes without touching the editor → no further pings, so
-    the session closes instead of billing your lunch. `DevPulse: Show status`
+    the session closes instead of billing your lunch. `MnlDevTelemetry: Show status`
     shows "heartbeat: on — every 5 min while editing, stops after 5 min idle".
 12. The point to land: this works for the dev who never touches AI. It is the
     difference between "roughly indicative" and "good enough to log to Jira".
@@ -418,6 +418,6 @@ Then the accuracy payoff — the part that makes the numbers trustworthy:
   four fields, so a vim/JetBrains plugin (or even a shell loop) can adopt it
   without server changes. Only the VS Code sender shipped here.
 - **A user-facing interval / opt-out setting.** The cadence is a shared constant,
-  not a `devpulse.*` setting, so a dev can't currently turn heartbeats off
-  independently of DevPulse itself. Add one if anyone objects to being pinged —
+  not a `mnlDevTelemetry.*` setting, so a dev can't currently turn heartbeats off
+  independently of MnlDevTelemetry itself. Add one if anyone objects to being pinged —
   the honest answer today is "uninstall or run the uninstall command".

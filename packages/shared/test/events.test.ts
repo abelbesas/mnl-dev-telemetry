@@ -11,7 +11,7 @@ function commit(overrides: Record<string, unknown> = {}) {
     source: "git_hook",
     type: "commit",
     ts,
-    repo: "devpulse",
+    repo: "mnl-dev-telemetry",
     branch: "feature/ABC-123",
     issue_key: "ABC-123",
     metadata: { files_changed: 3, insertions: 40, deletions: 5 },

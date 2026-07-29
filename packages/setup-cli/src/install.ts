@@ -19,9 +19,9 @@ import {
   removeHookScripts,
 } from "./hooks";
 import { planHooksPathInstall, planHooksPathUninstall } from "./hooks-path";
-import { devpulsePaths, type DevpulsePaths } from "./paths";
+import { mnlDevTelemetryPaths, type MnlDevTelemetryPaths } from "./paths";
 import { readSpool } from "./spool";
-import type { DeviceStartResponse } from "@devpulse/shared";
+import type { DeviceStartResponse } from "@mnl-dev-telemetry/shared";
 
 const DEFAULT_BASE_URL = "http://localhost:3000";
 
@@ -30,12 +30,12 @@ function defaultAgentSourcePath(): string {
   return path.join(__dirname, "agent.js");
 }
 
-function writePreviousHooksPath(paths: DevpulsePaths, value: string | null): void {
+function writePreviousHooksPath(paths: MnlDevTelemetryPaths, value: string | null): void {
   fs.mkdirSync(paths.home, { recursive: true });
   fs.writeFileSync(paths.previousHooksPath, value ?? "");
 }
 
-function readPreviousHooksPath(paths: DevpulsePaths): string | null {
+function readPreviousHooksPath(paths: MnlDevTelemetryPaths): string | null {
   try {
     const v = fs.readFileSync(paths.previousHooksPath, "utf8").trim();
     return v === "" ? null : v;
@@ -65,14 +65,14 @@ export interface InstallOptions {
 
 export async function runInstall(opts: InstallOptions): Promise<void> {
   const log = opts.log ?? ((msg: string) => console.log(msg));
-  const paths = devpulsePaths();
+  const paths = mnlDevTelemetryPaths();
   fs.mkdirSync(paths.home, { recursive: true });
 
   // 1. Credentials — reuse existing unless a login was explicitly requested.
   const existing = readCredentials(paths.credentials);
   const baseUrl =
     opts.baseUrl ??
-    process.env.DEVPULSE_URL ??
+    process.env.MNL_DEV_TELEMETRY_URL ??
     existing?.baseUrl ??
     DEFAULT_BASE_URL;
 
@@ -102,7 +102,7 @@ export async function runInstall(opts: InstallOptions): Promise<void> {
   const current = getGlobalHooksPath();
   const plan = planHooksPathInstall(current, paths.hooksDir);
   if (plan.alreadyInstalled) {
-    log("✓ core.hooksPath already points at DevPulse (idempotent)");
+    log("✓ core.hooksPath already points at MnlDevTelemetry (idempotent)");
   } else {
     if (plan.previousToStore !== undefined) {
       writePreviousHooksPath(paths, plan.previousToStore);
@@ -115,7 +115,7 @@ export async function runInstall(opts: InstallOptions): Promise<void> {
   }
 
   log("");
-  log("DevPulse is set up. Commits, branch switches and pushes will now");
+  log("MnlDevTelemetry is set up. Commits, branch switches and pushes will now");
   log(`report metadata to ${creds?.baseUrl ?? baseUrl}`);
 }
 
@@ -137,7 +137,7 @@ export interface LastSend {
  * Note for embedders: this does a handful of sync fs reads plus one
  * `git config --global` subprocess, so call it off any latency-critical path.
  */
-export interface DevpulseStatus {
+export interface MnlDevTelemetryStatus {
   home: string;
   credentials: Credentials | null;
   /** Current global `core.hooksPath`, or null if unset. */
@@ -152,8 +152,8 @@ export interface DevpulseStatus {
   lastSend: LastSend | null;
 }
 
-export function getStatus(): DevpulseStatus {
-  const paths = devpulsePaths();
+export function getStatus(): MnlDevTelemetryStatus {
+  const paths = mnlDevTelemetryPaths();
   const hooksPath = getGlobalHooksPath();
   return {
     home: paths.home,
@@ -170,7 +170,7 @@ export function getStatus(): DevpulseStatus {
 export function runStatus(): void {
   const s = getStatus();
 
-  console.log("DevPulse status");
+  console.log("MnlDevTelemetry status");
   console.log("  home:            ", s.home);
   if (s.credentials) {
     console.log("  logged in:        yes");
@@ -178,12 +178,12 @@ export function runStatus(): void {
     console.log("  token label:     ", s.credentials.label ?? "(none)");
     console.log("  token issued:    ", s.credentials.issuedAt ?? "(unknown)");
   } else {
-    console.log("  logged in:        no (run `devpulse-setup login`)");
+    console.log("  logged in:        no (run `mnl-dev-telemetry-setup login`)");
   }
   console.log(
     "  core.hooksPath:  ",
     s.hooksPath ?? "(unset)",
-    s.hooksPathIsOurs ? "← DevPulse" : "",
+    s.hooksPathIsOurs ? "← MnlDevTelemetry" : "",
   );
   if (s.chainedHooksPath) console.log("  chained path:    ", s.chainedHooksPath);
   console.log(
@@ -206,7 +206,7 @@ export interface UninstallOptions {
 
 export async function runUninstall(opts: UninstallOptions = {}): Promise<void> {
   const log = opts.log ?? ((msg: string) => console.log(msg));
-  const paths = devpulsePaths();
+  const paths = mnlDevTelemetryPaths();
 
   // 1. Reverse core.hooksPath — but only if it still points at us (don't
   //    clobber a value the dev changed by hand after install).
@@ -221,7 +221,7 @@ export async function runUninstall(opts: UninstallOptions = {}): Promise<void> {
       log("✓ Unset core.hooksPath");
     }
   } else if (current) {
-    log(`! core.hooksPath is ${current} (not DevPulse) — leaving it untouched`);
+    log(`! core.hooksPath is ${current} (not MnlDevTelemetry) — leaving it untouched`);
   }
 
   // 2. Remove local files.

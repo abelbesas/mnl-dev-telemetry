@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { DevpulsePaths } from "./paths";
+import type { MnlDevTelemetryPaths } from "./paths";
 import { HOOK_NAMES, hookScript } from "./hook-scripts";
 
 /**
@@ -9,7 +9,7 @@ import { HOOK_NAMES, hookScript } from "./hook-scripts";
  */
 
 /** Write the three hook scripts (0755) into `~/.devpulse/hooks/`. */
-export function installHookScripts(paths: DevpulsePaths): void {
+export function installHookScripts(paths: MnlDevTelemetryPaths): void {
   fs.mkdirSync(paths.hooksDir, { recursive: true });
   for (const name of HOOK_NAMES) {
     const file = path.join(paths.hooksDir, name);
@@ -19,18 +19,18 @@ export function installHookScripts(paths: DevpulsePaths): void {
 }
 
 /** Copy the bundled agent.js (sibling of the running CLI) to `~/.devpulse`. */
-export function installAgent(paths: DevpulsePaths, agentSource: string): void {
+export function installAgent(paths: MnlDevTelemetryPaths, agentSource: string): void {
   fs.mkdirSync(paths.home, { recursive: true });
   fs.copyFileSync(agentSource, paths.agentJs);
 }
 
 /** Remove installed hook scripts + agent (leaves credentials/spool alone). */
-export function removeHookScripts(paths: DevpulsePaths): void {
+export function removeHookScripts(paths: MnlDevTelemetryPaths): void {
   fs.rmSync(paths.hooksDir, { recursive: true, force: true });
   fs.rmSync(paths.agentJs, { force: true });
 }
 
-export function installedHooks(paths: DevpulsePaths): string[] {
+export function installedHooks(paths: MnlDevTelemetryPaths): string[] {
   return HOOK_NAMES.filter((name) =>
     fs.existsSync(path.join(paths.hooksDir, name)),
   );

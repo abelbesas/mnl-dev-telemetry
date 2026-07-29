@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getStatus, type DevpulseStatus } from "@devpulse/setup";
+import { getStatus, type MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 import { GitContext } from "./git-context";
 import { HeartbeatSender } from "./heartbeat";
 import {
@@ -16,11 +16,11 @@ import {
   timelineUrl,
 } from "./lib/urls";
 import { runEnableFlow, runUninstallFlow } from "./setup-flow";
-import { DevPulseStatusBar } from "./status-bar";
+import { MnlDevTelemetryStatusBar } from "./status-bar";
 
 /**
- * DevPulse for VS Code / Cursor (docs/phase-6-extension-brief.md). For setup and
- * visibility it is a thin wrapper around `@devpulse/setup`; the one thing it
+ * MnlDevTelemetry for VS Code / Cursor (docs/phase-6-extension-brief.md). For setup and
+ * visibility it is a thin wrapper around `@mnl-dev-telemetry/setup`; the one thing it
  * sends on its own is a presence heartbeat (`heartbeat.ts`, §4a), which is what
  * stops sessions from starting at the first commit and ending at the last.
  *
@@ -32,25 +32,25 @@ import { DevPulseStatusBar } from "./status-bar";
  * microtask after `activate()` returns (brief §6: <100ms activation budget).
  */
 
-const WELCOME_DISMISSED_KEY = "devpulse.welcomeDismissed";
+const WELCOME_DISMISSED_KEY = "mnlDevTelemetry.welcomeDismissed";
 /** Keeps the tooltip's "last event sent" honest without user interaction. */
 const REFRESH_INTERVAL_MS = 60_000;
 
 function dashboardUrlSetting(): string {
   return normalizeDashboardUrl(
-    vscode.workspace.getConfiguration("devpulse").get<string>("dashboardUrl"),
+    vscode.workspace.getConfiguration("mnlDevTelemetry").get<string>("dashboardUrl"),
   );
 }
 
-class DevPulse implements vscode.Disposable {
+class MnlDevTelemetry implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
-  private readonly statusBar = new DevPulseStatusBar();
+  private readonly statusBar = new MnlDevTelemetryStatusBar();
   private readonly git = new GitContext();
   private readonly channel: vscode.OutputChannel;
   private readonly heartbeat: HeartbeatSender;
 
   private state: PresentationState = "checking";
-  private status: DevpulseStatus | null = null;
+  private status: MnlDevTelemetryStatus | null = null;
   private repo: RepoContext | null = null;
 
   private refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -58,7 +58,7 @@ class DevPulse implements vscode.Disposable {
   private refreshQueued = false;
 
   constructor(private readonly context: vscode.ExtensionContext) {
-    this.channel = vscode.window.createOutputChannel("DevPulse");
+    this.channel = vscode.window.createOutputChannel("MnlDevTelemetry");
     // Constructed here (cheap — it only subscribes to editor events) but not
     // started until state detection confirms the machine is set up.
     this.heartbeat = new HeartbeatSender(this.git, this.channel);
@@ -78,16 +78,16 @@ class DevPulse implements vscode.Disposable {
     const cmd = (id: string, fn: () => unknown) =>
       this.disposables.push(vscode.commands.registerCommand(id, fn));
 
-    cmd("devpulse.enable", () => this.enable());
-    cmd("devpulse.status", () => this.showStatusReport());
-    cmd("devpulse.openDashboard", () => this.openDashboard());
-    cmd("devpulse.openCurrentTask", () => this.openCurrentTask());
-    cmd("devpulse.uninstall", () => this.uninstall());
+    cmd("mnlDevTelemetry.enable", () => this.enable());
+    cmd("mnlDevTelemetry.status", () => this.showStatusReport());
+    cmd("mnlDevTelemetry.openDashboard", () => this.openDashboard());
+    cmd("mnlDevTelemetry.openCurrentTask", () => this.openCurrentTask());
+    cmd("mnlDevTelemetry.uninstall", () => this.uninstall());
 
     this.disposables.push(
       this.git.onDidChange(() => this.scheduleRefresh()),
       vscode.workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration("devpulse.dashboardUrl")) this.render();
+        if (e.affectsConfiguration("mnlDevTelemetry.dashboardUrl")) this.render();
       }),
       vscode.window.onDidChangeWindowState((s) => {
         if (s.focused) this.scheduleRefresh();
@@ -137,7 +137,7 @@ class DevPulse implements vscode.Disposable {
         this.state = setupStateFromStatus(this.status);
       } catch (err) {
         this.channel.appendLine(
-          `! could not read DevPulse state: ${
+          `! could not read MnlDevTelemetry state: ${
             err instanceof Error ? err.message : String(err)
           }`,
         );
@@ -182,14 +182,14 @@ class DevPulse implements vscode.Disposable {
 
     if (result.cancelled) {
       void vscode.window.showInformationMessage(
-        "DevPulse setup cancelled. Run “DevPulse: Enable DevPulse on this machine” whenever you're ready.",
+        "MnlDevTelemetry setup cancelled. Run “MnlDevTelemetry: Enable MnlDevTelemetry on this machine” whenever you're ready.",
       );
       return;
     }
     if (!result.ok) return;
 
     const choice = await vscode.window.showInformationMessage(
-      "DevPulse is active. Commits, branch switches and pushes now report metadata only — never code.",
+      "MnlDevTelemetry is active. Commits, branch switches and pushes now report metadata only — never code.",
       "Open dashboard",
     );
     if (choice === "Open dashboard") await this.openDashboard();
@@ -226,7 +226,7 @@ class DevPulse implements vscode.Disposable {
   private async showStatusReport(): Promise<void> {
     await this.refresh();
     if (!this.status) {
-      void vscode.window.showWarningMessage("DevPulse: could not read local state.");
+      void vscode.window.showWarningMessage("MnlDevTelemetry: could not read local state.");
       return;
     }
     this.channel.appendLine("");
@@ -251,13 +251,13 @@ class DevPulse implements vscode.Disposable {
 
     const choice = await vscode.window.showInformationMessage(
       this.state === "partial"
-        ? "DevPulse setup is incomplete on this machine. Finish it to start reporting time against your tickets."
-        : "Enable DevPulse to track task time automatically? You approve once in the browser; only metadata (repo, branch, ticket, diff counts) is ever sent — never code.",
-      "Enable DevPulse",
+        ? "MnlDevTelemetry setup is incomplete on this machine. Finish it to start reporting time against your tickets."
+        : "Enable MnlDevTelemetry to track task time automatically? You approve once in the browser; only metadata (repo, branch, ticket, diff counts) is ever sent — never code.",
+      "Enable MnlDevTelemetry",
       "Not now",
       "Don't ask again",
     );
-    if (choice === "Enable DevPulse") {
+    if (choice === "Enable MnlDevTelemetry") {
       await this.enable();
     } else if (choice === "Don't ask again") {
       await this.context.globalState.update(WELCOME_DISMISSED_KEY, true);
@@ -266,14 +266,14 @@ class DevPulse implements vscode.Disposable {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
-  const devpulse = new DevPulse(context);
-  devpulse.wireCommands();
-  context.subscriptions.push(devpulse);
+  const mnlDevTelemetry = new MnlDevTelemetry(context);
+  mnlDevTelemetry.wireCommands();
+  context.subscriptions.push(mnlDevTelemetry);
 
   // Everything that touches fs, git or the network happens after activation
   // returns, so the extension host is never blocked at startup (brief §6).
   setTimeout(() => {
-    void devpulse.start();
+    void mnlDevTelemetry.start();
   }, 0);
 }
 

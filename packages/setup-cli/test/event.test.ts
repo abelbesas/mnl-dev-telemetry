@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventSchema } from "@devpulse/shared";
+import { eventSchema } from "@mnl-dev-telemetry/shared";
 import {
   buildEvent,
   detectAiCoAuthor,
@@ -46,7 +46,7 @@ describe("buildEvent", () => {
   it("builds a schema-valid commit event with diff stats and issue key", () => {
     const ctx: HookContext = {
       hook: "post-commit",
-      repo: "devpulse",
+      repo: "mnl-dev-telemetry",
       branch: "feature/ABC-123-thing",
       sha: "a1b2c3d4e5f6a7b8",
       shortstat: " 2 files changed, 10 insertions(+), 1 deletion(-)",
@@ -59,7 +59,7 @@ describe("buildEvent", () => {
     expect(event).toMatchObject({
       type: "commit",
       source: "git_hook",
-      repo: "devpulse",
+      repo: "mnl-dev-telemetry",
       issue_key: "ABC-123",
       metadata: {
         sha: "a1b2c3d4e5f6a7b8",
@@ -74,7 +74,7 @@ describe("buildEvent", () => {
   it("emits branch_switch only for real branch checkouts", () => {
     const base: HookContext = {
       hook: "post-checkout",
-      repo: "devpulse",
+      repo: "mnl-dev-telemetry",
       branch: "DEV-9-feature",
       fromBranch: "main",
       toBranch: "DEV-9-feature",
@@ -103,7 +103,7 @@ describe("buildEvent", () => {
   it("builds a push event with remote and commit count", () => {
     const ctx: HookContext = {
       hook: "pre-push",
-      repo: "devpulse",
+      repo: "mnl-dev-telemetry",
       branch: "main",
       remote: "origin",
       commitCount: 3,
@@ -118,7 +118,7 @@ describe("buildEvent", () => {
 
   it("omits optional metadata cleanly when git facts are unavailable", () => {
     const event = buildEvent(
-      { hook: "pre-push", repo: "devpulse", branch: "main", remote: null, commitCount: null },
+      { hook: "pre-push", repo: "mnl-dev-telemetry", branch: "main", remote: null, commitCount: null },
       { uuid: UUID, ts: TS },
     );
     expect(event).toMatchObject({ type: "push", metadata: {} });

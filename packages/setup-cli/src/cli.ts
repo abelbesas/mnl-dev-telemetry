@@ -1,10 +1,10 @@
 import { writeCredentials } from "./credentials";
 import { deviceLogin } from "./device-auth";
 import { runInstall, runStatus, runUninstall } from "./install";
-import { devpulsePaths } from "./paths";
+import { mnlDevTelemetryPaths } from "./paths";
 
 /**
- * `@devpulse/setup` CLI (spec §4.3). Commands:
+ * `@mnl-dev-telemetry/setup` CLI (spec §4.3). Commands:
  *   install [--url U] [--login] [--label L]   set up token + git hooks (default)
  *   login   [--url U] [--label L]             (re)run the device-auth login only
  *   status                                    show what's installed
@@ -48,9 +48,9 @@ async function main(): Promise<void> {
 
     case "login": {
       const baseUrl =
-        args.url ?? process.env.DEVPULSE_URL ?? "http://localhost:3000";
+        args.url ?? process.env.MNL_DEV_TELEMETRY_URL ?? "http://localhost:3000";
       const creds = await deviceLogin({ baseUrl, label: args.label });
-      const paths = devpulsePaths();
+      const paths = mnlDevTelemetryPaths();
       writeCredentials(paths.credentials, creds);
       console.log("✓ Saved credentials to", paths.credentials, "(mode 0600)");
       break;
@@ -66,7 +66,9 @@ async function main(): Promise<void> {
 
     default:
       console.error(`Unknown command: ${args.command}`);
-      console.error("Usage: devpulse-setup [install|login|status|uninstall]");
+      console.error(
+        "Usage: mnl-dev-telemetry-setup [install|login|status|uninstall]",
+      );
       process.exitCode = 1;
   }
 }

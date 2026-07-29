@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   HEARTBEAT_INTERVAL_MINUTES,
   STITCH_GAP_MINUTES,
-} from "@devpulse/shared";
+} from "@mnl-dev-telemetry/shared";
 import { stitchUserEvents, type StitchEvent, type WorkingHours } from "@/lib/stitch";
 
 /**

@@ -1,4 +1,4 @@
-import { extractIssueKey, type IngestEvent } from "@devpulse/shared";
+import { extractIssueKey, type IngestEvent } from "@mnl-dev-telemetry/shared";
 import type { NewEventRow } from "@/db/schema";
 
 /**

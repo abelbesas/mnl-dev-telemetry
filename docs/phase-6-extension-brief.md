@@ -8,12 +8,12 @@
 
 ## 1. Why / context
 
-DevPulse is being demoed off a live Vercel deployment
+MnlDevTelemetry is being demoed off a live Vercel deployment
 (`https://mnl-dev-telemetry-dashboard.vercel.app`). Onboarding today means
 handing teammates two bundled files (`cli.js`, `agent.js`) and a terminal
 command. That works but demos poorly and adds friction. Phase 6 (spec §4.7,
 pulled forward for the demo) replaces that with: **install one VS Code
-extension → click "Enable DevPulse" → approve in browser → done.**
+extension → click "Enable MnlDevTelemetry" → approve in browser → done.**
 
 For **setup and visibility**, the extension is deliberately a **thin UI wrapper
 around the existing setup CLI**. It must not reimplement device-auth, hook
@@ -51,20 +51,20 @@ before and after; heartbeats close both gaps for every dev, AI-assisted or not.
 1. **First-run setup flow.** On activation, detect state (is
    `~/.devpulse/credentials` present? does `core.hooksPath` point at
    `~/.devpulse/hooks`?). If not set up: show a welcome view / notification
-   with **"Enable DevPulse"**. Clicking it runs the equivalent of
+   with **"Enable MnlDevTelemetry"**. Clicking it runs the equivalent of
    `install --url <configured URL>`, surfaces the user code + "Open activation
    page" button (opens `<url>/activate` in the browser), and shows progress
    until the token lands. Idempotent, like the CLI.
-2. **Status bar item.** Shows DevPulse state at a glance:
-   - not set up → `$(pulse) DevPulse: Set up` (click → setup flow)
+2. **Status bar item.** Shows MnlDevTelemetry state at a glance:
+   - not set up → `$(pulse) MnlDevTelemetry: Set up` (click → setup flow)
    - active → `$(pulse) <ISSUE-KEY>` derived from the current repo's branch
-     (workspace folder's git HEAD), or `DevPulse ✓` when no key. Tooltip:
+     (workspace folder's git HEAD), or `MnlDevTelemetry ✓` when no key. Tooltip:
      dashboard URL, token label, last event sent (read
      `~/.devpulse/last-send.json`, same as CLI `status`).
-3. **Commands** (palette, `devpulse.` prefix): Enable/Set up · Status ·
+3. **Commands** (palette, `mnlDevTelemetry.` prefix): Enable/Set up · Status ·
    Open Dashboard · Open Current Task (uses branch issue key →
    `<url>/tasks/<KEY>`) · Uninstall (with confirm dialog).
-4. **Settings:** `devpulse.dashboardUrl` (string, default the Vercel URL).
+4. **Settings:** `mnlDevTelemetry.dashboardUrl` (string, default the Vercel URL).
 5. **Branch-name nudge (small but demo-gold):** when the current branch has no
    issue key, status bar shows a subtle warning state; tooltip explains
    "name branches like TEX-123-description so time lands on the ticket."
@@ -78,11 +78,11 @@ capturing anything about the editor beyond repo/branch/timestamp.
 
 ## 4. Architecture & key decisions
 
-- New workspace package `packages/vscode-extension` (name `devpulse-vscode`,
-  `displayName: DevPulse`). Bundle with **esbuild to a single CJS `dist/extension.js`**
+- New workspace package `packages/vscode-extension` (name `mnl-dev-telemetry-vscode`,
+  `displayName: MnlDevTelemetry`). Bundle with **esbuild to a single CJS `dist/extension.js`**
   (VS Code extensions are CJS; matches the setup-cli precedent).
 - **How to reuse the CLI logic — import, don't shell out to npx:** depend on
-  `@devpulse/setup` as a workspace dep and import `runInstall`/`runStatus`/
+  `@mnl-dev-telemetry/setup` as a workspace dep and import `runInstall`/`runStatus`/
   `runUninstall` directly; esbuild inlines them. One caveat: `install.ts`
   locates `agent.js` next to `__dirname` — ship `agent.js` inside the
   extension (copy `packages/setup-cli/dist/agent.js` into the extension's
@@ -183,15 +183,15 @@ truth.
   the session reads ~30 min starting at 10:00 (not 0 min at 10:30). This is the
   headline check for the phase.
 - Unit tests (vitest) for any pure logic added (state detection, issue-key
-  from branch reuses `@devpulse/shared`); manual checklist for the UI flows.
-- `pnpm --filter devpulse-vscode package` produces an installable `.vsix`.
+  from branch reuses `@mnl-dev-telemetry/shared`); manual checklist for the UI flows.
+- `pnpm --filter mnl-dev-telemetry-vscode package` produces an installable `.vsix`.
 
 ## 6. Distribution plan (demo now, marketplace later)
 
 1. **Demo / team testing — no marketplace, no approval:** package a `.vsix`
    (`vsce package`) and share the file (Slack/GitHub release). Anyone installs
    via Extensions panel → "Install from VSIX…" or
-   `code --install-extension devpulse-0.x.x.vsix`. Works in Cursor too.
+   `code --install-extension mnl-dev-telemetry-0.x.x.vsix`. Works in Cursor too.
 2. **Later — VS Code Marketplace:** free Microsoft publisher account (Azure
    DevOps PAT) + `vsce publish`. Automated scan only; typically live in
    minutes, no human review gate. Cursor users primarily pull from Open VSX —

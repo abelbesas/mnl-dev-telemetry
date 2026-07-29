@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { extractIssueKey } from "@devpulse/shared";
-import type { DevpulseStatus } from "@devpulse/setup";
+import { extractIssueKey } from "@mnl-dev-telemetry/shared";
+import type { MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 import {
   formatLastSend,
   formatRelativeTime,
@@ -18,7 +18,7 @@ import {
 const NOW = new Date("2026-07-29T10:00:00.000Z");
 const TOKEN = "dp_secret_agent_token_value";
 
-function activeStatus(overrides: Partial<DevpulseStatus> = {}): DevpulseStatus {
+function activeStatus(overrides: Partial<MnlDevTelemetryStatus> = {}): MnlDevTelemetryStatus {
   return {
     home: "/home/dev/.devpulse",
     credentials: {
@@ -76,8 +76,8 @@ describe("statusPresentation — setup states", () => {
     const p = statusPresentation(
       input({ state: "not-installed", status: null, repo: null }),
     );
-    expect(p.text).toBe("$(pulse) DevPulse: Set up");
-    expect(p.command).toBe("devpulse.enable");
+    expect(p.text).toBe("$(pulse) MnlDevTelemetry: Set up");
+    expect(p.command).toBe("mnlDevTelemetry.enable");
     expect(p.warning).toBe(false);
   });
 
@@ -88,15 +88,15 @@ describe("statusPresentation — setup states", () => {
         status: activeStatus({ hooksPathIsOurs: false, hooksPath: "/x/.husky" }),
       }),
     );
-    expect(p.text).toBe("$(pulse) DevPulse: Finish setup");
-    expect(p.command).toBe("devpulse.enable");
+    expect(p.text).toBe("$(pulse) MnlDevTelemetry: Finish setup");
+    expect(p.command).toBe("mnlDevTelemetry.enable");
     expect(p.warning).toBe(true);
     expect(p.tooltip).toContain("/x/.husky");
   });
 
   it("shows a neutral placeholder while state is still unknown", () => {
     const p = statusPresentation(input({ state: "checking", status: null }));
-    expect(p.text).toBe("$(pulse) DevPulse");
+    expect(p.text).toBe("$(pulse) MnlDevTelemetry");
     expect(p.warning).toBe(false);
   });
 });
@@ -105,7 +105,7 @@ describe("statusPresentation — active", () => {
   it("shows the issue key from a TEX-123-* branch and links to the task", () => {
     const p = statusPresentation(input());
     expect(p.text).toBe("$(pulse) TEX-123");
-    expect(p.command).toBe("devpulse.openCurrentTask");
+    expect(p.command).toBe("mnlDevTelemetry.openCurrentTask");
     expect(p.warning).toBe(false);
     expect(p.tooltip).toContain("acme-web");
     expect(p.tooltip).toContain("TEX-123-add-widget");
@@ -115,15 +115,15 @@ describe("statusPresentation — active", () => {
     const p = statusPresentation(
       input({ repo: { name: "acme-web", branch: "main" } }),
     );
-    expect(p.text).toBe("$(pulse) DevPulse: no ticket");
+    expect(p.text).toBe("$(pulse) MnlDevTelemetry: no ticket");
     expect(p.warning).toBe(true);
     expect(p.tooltip).toContain("TEX-123-short-description");
-    expect(p.command).toBe("devpulse.openDashboard");
+    expect(p.command).toBe("mnlDevTelemetry.openDashboard");
   });
 
   it("stays calm when no git repo is open", () => {
     const p = statusPresentation(input({ repo: null }));
-    expect(p.text).toBe("$(pulse) DevPulse ✓");
+    expect(p.text).toBe("$(pulse) MnlDevTelemetry ✓");
     expect(p.warning).toBe(false);
     expect(p.tooltip).toContain("machine-global");
   });

@@ -47,7 +47,7 @@ export function GenerateTokenForm({
           {state.token}
           <div className="muted" style={{ marginTop: "0.4rem" }}>
             Copy this now — it is shown once. Give it to{" "}
-            <code>npx @devpulse/setup</code> on the dev machine.
+            <code>npx @mnl-dev-telemetry/setup</code> on the dev machine.
           </div>
         </div>
       ) : null}

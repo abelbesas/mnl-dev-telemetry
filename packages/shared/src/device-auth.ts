@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Device-authorization flow contract (spec §4.3, item 1).
  *
- * A headless CLI (`@devpulse/setup`) cannot complete an interactive SSO login,
+ * A headless CLI (`@mnl-dev-telemetry/setup`) cannot complete an interactive SSO login,
  * so it uses an OAuth-2.0-device-flow-style handshake:
  *
  *   1. CLI  → POST /api/auth/device/start           → { device_code, user_code, ... }

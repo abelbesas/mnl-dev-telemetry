@@ -138,7 +138,7 @@ charts legible. Re-running is idempotent (clears prior demo data first).
 ## Gotchas
 
 - **The team view counts *all* users**, including any left over from earlier
-  phases (e.g. `dev@devpulse.local` from the Phase-1 seed, device-auth test
+  phases (e.g. `dev@mnl-dev-telemetry.local` from the Phase-1 seed, device-auth test
   users). For a pristine team demo, reset the DB first (see demo script step 0).
 - **`declaration: false` in `apps/dashboard/tsconfig.json`.** next-auth v5's
   inferred `auth` type otherwise triggers TS2742 ("cannot be named…") under the
@@ -162,7 +162,7 @@ pnpm test                # 82 tests (21 shared, 37 dashboard, 24 setup-cli)
 # Dashboard needs AUTH_SECRET + a login method in apps/dashboard/.env:
 #   AUTH_SECRET=$(openssl rand -base64 32)
 #   DEV_LOGIN_ENABLED=true            # demo login (no Google needed)
-pnpm --filter @devpulse/dashboard dev
+pnpm --filter @mnl-dev-telemetry/dashboard dev
 ```
 
 ## Acceptance — verified
@@ -204,12 +204,12 @@ pnpm db:seed:demo
 # 2. ensure apps/dashboard/.env has:
 #      AUTH_SECRET=<openssl rand -base64 32>
 #      DEV_LOGIN_ENABLED=true
-pnpm --filter @devpulse/dashboard dev     # http://localhost:3000
+pnpm --filter @mnl-dev-telemetry/dashboard dev     # http://localhost:3000
 ```
 
 Then, in the browser:
 
-1. **Sign in as a dev** — `alice@devpulse.local` (heavy AI user). Land on
+1. **Sign in as a dev** — `alice@mnl-dev-telemetry.local` (heavy AI user). Land on
    **My timeline**: sessions grouped by day, each with clock range, a purple
    **✦ Claude Code** badge where AI was involved, a reported-time bar, and
    "…raw" where the working-hours clamp trimmed the span. Note the top tiles:
@@ -217,7 +217,7 @@ Then, in the browser:
 2. **Click a ticket** (e.g. `WEB-101`) → **Task detail**: Estimate vs
    Actual (reported) vs Raw span, and a **compression ratio** (green when under
    estimate). Edit the estimate inline and Save to show it recompute.
-3. **Sign out, sign in as the lead** — `dana@devpulse.local`. The **Team** link
+3. **Sign out, sign in as the lead** — `dana@mnl-dev-telemetry.local`. The **Team** link
    now appears. Open it:
    - **Estimate-compression ratio over time** — trend line with a 1.0 reference.
    - **AI-assisted vs not** — the headline: AI tickets came in well under
@@ -226,7 +226,7 @@ Then, in the browser:
 4. **Settings** → issue an agent token (shown once) and revoke one; adjust
    working hours (drives the stitcher's clamp on the next run).
 5. **Activate device** → the SSO-gated screen a dev uses to authorize
-   `npx @devpulse/setup` (replaces the Phase-2 curl).
+   `npx @mnl-dev-telemetry/setup` (replaces the Phase-2 curl).
 
 To show the stitcher re-running deterministically:
 `curl -X POST localhost:3000/api/cron/stitch` (safe to run repeatedly).
@@ -236,7 +236,7 @@ To show the stitcher re-running deterministically:
 - **Phase 5 (drafts + Tempo):** `worklog_drafts` exists; add the nightly rollup
   (spec §4.2 step 5) grouping `task_sessions` by `issue_key` + date, the Drafts
   screen (edit/approve), and the sync worker (`resolveIssue`/`createIssue`/
-  `pushWorklog`, mirror tickets, `[devpulse]` idempotency). `reported_seconds` is
+  `pushWorklog`, mirror tickets, `[mnl-dev-telemetry]` idempotency). `reported_seconds` is
   the field to roll up. Replace the manual estimate with a Jira fetch.
 - **Phase 3 (MCP):** real `mcp`/`cc_hook` events already flow through the same
   ingestion + stitching path; the AI flag will pick them up with no stitcher

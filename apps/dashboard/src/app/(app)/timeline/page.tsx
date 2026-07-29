@@ -56,8 +56,7 @@ export default async function TimelinePage() {
       <div className="page-head">
         <h1>My timeline</h1>
         <p>
-          This week ({formatDay(range.from, tz)} – today), {tz}. Reported time is
-          clamped to your working hours; raw span is shown alongside.
+          This week ({formatDay(range.from, tz)} – today), {tz}.
         </p>
       </div>
 

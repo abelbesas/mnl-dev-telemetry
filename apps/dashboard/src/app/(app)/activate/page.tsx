@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * SSO-gated device activation (spec §4.3). A signed-in dev enters the code that
- * `npx @devpulse/setup` printed; the token is minted for *this* session's user
+ * `npx @mnl-dev-telemetry/setup` printed; the token is minted for *this* session's user
  * — the identity is never taken from the request.
  */
 export default async function ActivatePage() {
@@ -41,7 +41,7 @@ export default async function ActivatePage() {
       <div className="page-head">
         <h1>Activate a device</h1>
         <p>
-          Run <code className="mono">npx @devpulse/setup</code> on your machine,
+          Run <code className="mono">npx @mnl-dev-telemetry/setup</code> on your machine,
           then enter the code it shows here to authorize its agent.
         </p>
       </div>

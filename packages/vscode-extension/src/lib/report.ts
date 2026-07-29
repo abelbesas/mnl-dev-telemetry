@@ -1,20 +1,20 @@
 import {
   HEARTBEAT_IDLE_MINUTES,
   HEARTBEAT_INTERVAL_MINUTES,
-} from "@devpulse/shared";
-import type { DevpulseStatus } from "@devpulse/setup";
+} from "@mnl-dev-telemetry/shared";
+import type { MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 import { formatLastSend, issueKeyForRepo, type RepoContext } from "./presentation";
 import type { SetupState } from "./state";
 import { normalizeDashboardUrl } from "./urls";
 
 /**
- * Plain-text status report for the DevPulse output channel — the editor
- * equivalent of `devpulse-setup status`, built from the same `getStatus()` data.
+ * Plain-text status report for the MnlDevTelemetry output channel — the editor
+ * equivalent of `mnl-dev-telemetry-setup status`, built from the same `getStatus()` data.
  * Pure so its content is testable.
  */
 export function statusReportLines(input: {
   state: SetupState;
-  status: DevpulseStatus;
+  status: MnlDevTelemetryStatus;
   dashboardUrl: string;
   repo: RepoContext | null;
   now: Date;
@@ -24,7 +24,7 @@ export function statusReportLines(input: {
   const { status } = input;
   const issueKey = issueKeyForRepo(input.repo);
   const lines = [
-    "DevPulse status",
+    "MnlDevTelemetry status",
     `  state:            ${input.state}`,
     `  home:             ${status.home}`,
     `  logged in:        ${status.credentials ? "yes" : "no"}`,
@@ -40,7 +40,7 @@ export function statusReportLines(input: {
 
   lines.push(
     `  core.hooksPath:   ${status.hooksPath ?? "(unset)"}${
-      status.hooksPathIsOurs ? " ← DevPulse" : ""
+      status.hooksPathIsOurs ? " ← MnlDevTelemetry" : ""
     }`,
   );
   if (status.chainedHooksPath) {

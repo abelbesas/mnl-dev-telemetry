@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import {
   deviceTokenRequestSchema,
   type DeviceTokenResponse,
-} from "@devpulse/shared";
+} from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import { deviceAuthorizations } from "@/db/schema";
 

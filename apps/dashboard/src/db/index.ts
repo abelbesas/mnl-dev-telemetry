@@ -13,23 +13,23 @@ import * as schema from "./schema";
 type Db = ReturnType<typeof drizzle<typeof schema>>;
 
 const globalForDb = globalThis as unknown as {
-  __devpulseSql?: ReturnType<typeof postgres>;
-  __devpulseDb?: Db;
+  __mnlDevTelemetrySql?: ReturnType<typeof postgres>;
+  __mnlDevTelemetryDb?: Db;
 };
 
 export function getDb(): Db {
-  if (globalForDb.__devpulseDb) return globalForDb.__devpulseDb;
+  if (globalForDb.__mnlDevTelemetryDb) return globalForDb.__mnlDevTelemetryDb;
 
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const sql = globalForDb.__devpulseSql ?? postgres(url, pgOptions(url));
+  const sql = globalForDb.__mnlDevTelemetrySql ?? postgres(url, pgOptions(url));
   const db = drizzle(sql, { schema, casing: "snake_case" });
 
-  globalForDb.__devpulseSql = sql;
-  globalForDb.__devpulseDb = db;
+  globalForDb.__mnlDevTelemetrySql = sql;
+  globalForDb.__mnlDevTelemetryDb = db;
   return db;
 }
 
