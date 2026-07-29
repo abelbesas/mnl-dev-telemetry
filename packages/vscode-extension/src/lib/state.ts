@@ -1,8 +1,8 @@
-import { HOOK_NAMES, type DevpulseStatus } from "@devpulse/setup";
+import { HOOK_NAMES, type MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 
 /**
- * "Is DevPulse actually working on this machine?" — derived from the same
- * `getStatus()` the CLI prints, so the extension and `devpulse-setup status`
+ * "Is MnlDevTelemetry actually working on this machine?" — derived from the same
+ * `getStatus()` the CLI prints, so the extension and `mnl-dev-telemetry-setup status`
  * can never disagree.
  *
  * Pure (no `vscode`, no fs): the facts are extracted once, the verdict is a
@@ -30,7 +30,7 @@ export interface StateFacts {
   hookScriptsPresent: boolean;
 }
 
-export function factsFromStatus(status: DevpulseStatus): StateFacts {
+export function factsFromStatus(status: MnlDevTelemetryStatus): StateFacts {
   return {
     hasCredentials: status.credentials !== null,
     hooksPathIsOurs: status.hooksPathIsOurs,
@@ -46,7 +46,7 @@ export function deriveSetupState(facts: StateFacts): SetupState {
 }
 
 /** Convenience for the common path: status → state. */
-export function setupStateFromStatus(status: DevpulseStatus): SetupState {
+export function setupStateFromStatus(status: MnlDevTelemetryStatus): SetupState {
   return deriveSetupState(factsFromStatus(status));
 }
 
@@ -54,7 +54,7 @@ export function setupStateFromStatus(status: DevpulseStatus): SetupState {
  * Why a `partial` install is partial, as a one-line human explanation. Returns
  * null for any other state.
  */
-export function partialReason(status: DevpulseStatus): string | null {
+export function partialReason(status: MnlDevTelemetryStatus): string | null {
   if (setupStateFromStatus(status) !== "partial") return null;
   const facts = factsFromStatus(status);
   if (!facts.hasCredentials) {
@@ -64,6 +64,6 @@ export function partialReason(status: DevpulseStatus): string | null {
     return "You have an agent token, but the git hook scripts are missing.";
   }
   return status.hooksPath
-    ? `You have an agent token, but global core.hooksPath points at ${status.hooksPath} instead of DevPulse.`
-    : "You have an agent token, but global core.hooksPath is not set to DevPulse.";
+    ? `You have an agent token, but global core.hooksPath points at ${status.hooksPath} instead of MnlDevTelemetry.`
+    : "You have an agent token, but global core.hooksPath is not set to MnlDevTelemetry.";
 }

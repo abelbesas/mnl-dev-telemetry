@@ -6,7 +6,7 @@ flowchart LR
     M["<b>MCP server</b> 🔜<br/>agent task events"]
   end
 
-  subgraph SRV["☁️ DevPulse service — Vercel + Postgres"]
+  subgraph SRV["☁️ MnlDevTelemetry service — Vercel + Postgres"]
     direction TB
     I["<b>Ingestion API</b><br/>write-only token"]
     DB[("events<br/>append-only")]

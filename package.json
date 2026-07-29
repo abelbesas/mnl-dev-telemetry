@@ -1,5 +1,5 @@
 {
-  "name": "devpulse",
+  "name": "mnl-dev-telemetry",
   "private": true,
   "packageManager": "pnpm@10.17.1",
   "engines": {
@@ -13,10 +13,10 @@
     "typecheck": "turbo run typecheck",
     "db:up": "docker compose -f infra/docker-compose.yml up -d",
     "db:down": "docker compose -f infra/docker-compose.yml down",
-    "db:generate": "pnpm --filter @devpulse/dashboard db:generate",
-    "db:migrate": "pnpm --filter @devpulse/dashboard db:migrate",
-    "db:seed": "pnpm --filter @devpulse/dashboard db:seed",
-    "db:seed:demo": "pnpm --filter @devpulse/dashboard db:seed:demo"
+    "db:generate": "pnpm --filter @mnl-dev-telemetry/dashboard db:generate",
+    "db:migrate": "pnpm --filter @mnl-dev-telemetry/dashboard db:migrate",
+    "db:seed": "pnpm --filter @mnl-dev-telemetry/dashboard db:seed",
+    "db:seed:demo": "pnpm --filter @mnl-dev-telemetry/dashboard db:seed:demo"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

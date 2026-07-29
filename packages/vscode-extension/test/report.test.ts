@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { DevpulseStatus } from "@devpulse/setup";
+import type { MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 import { statusReportLines } from "../src/lib/report";
 
 const NOW = new Date("2026-07-29T10:00:00.000Z");
 
-const status: DevpulseStatus = {
+const status: MnlDevTelemetryStatus = {
   home: "/home/dev/.devpulse",
   credentials: {
     token: "dp_secret",
@@ -30,10 +30,10 @@ describe("statusReportLines", () => {
       now: NOW,
     }).join("\n");
 
-  it("reports the install, mirroring `devpulse-setup status`", () => {
+  it("reports the install, mirroring `mnl-dev-telemetry-setup status`", () => {
     const text = report({ name: "acme-web", branch: "TEX-9-thing" });
     expect(text).toContain("state:            active");
-    expect(text).toContain("core.hooksPath:   /home/dev/.devpulse/hooks ← DevPulse");
+    expect(text).toContain("core.hooksPath:   /home/dev/.devpulse/hooks ← MnlDevTelemetry");
     expect(text).toContain("chained path:     /home/dev/.husky");
     expect(text).toContain("post-commit, post-checkout, pre-push");
     expect(text).toContain("acme-web on TEX-9-thing → TEX-9");

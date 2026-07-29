@@ -1,4 +1,4 @@
-# Deploying DevPulse (Vercel) — early team-testing runbook
+# Deploying MnlDevTelemetry (Vercel) — early team-testing runbook
 
 Not a build phase — deployment is cross-cutting ops. This is the minimum path to
 a shared URL so other devs can attach their machines and test *now*, using the
@@ -116,23 +116,23 @@ marketplace, no approval:
 
 ```bash
 pnpm install
-pnpm --filter devpulse-vscode package
-# → packages/vscode-extension/devpulse-vscode-0.2.0.vsix
+pnpm --filter mnl-dev-telemetry-vscode package
+# → packages/vscode-extension/mnl-dev-telemetry-vscode-0.2.0.vsix
 ```
 
 On their machine:
 
 1. Install it — Extensions panel → `···` → **Install from VSIX…**, or:
    ```bash
-   code --install-extension devpulse-vscode-0.2.0.vsix
+   code --install-extension mnl-dev-telemetry-vscode-0.2.0.vsix
    ```
    (Cursor: same panel.)
-2. If the deployed URL isn't the packaged default, set **`devpulse.dashboardUrl`**
+2. If the deployed URL isn't the packaged default, set **`mnlDevTelemetry.dashboardUrl`**
    in Settings to `https://<your-app>.vercel.app`. The default is
    `https://mnl-dev-telemetry-dashboard.vercel.app`, so rebuild the VSIX with a
    new default if your team's URL differs and you'd rather not have them set it.
-3. Click **Enable DevPulse** in the notification (or run
-   `DevPulse: Enable DevPulse on this machine` from the palette). The progress
+3. Click **Enable MnlDevTelemetry** in the notification (or run
+   `MnlDevTelemetry: Enable MnlDevTelemetry on this machine` from the palette). The progress
    notification shows a code — already copied to their clipboard — with an
    **Open activation page** button.
 4. They sign in **as themselves** (their email), paste the code, approve → the
@@ -144,7 +144,7 @@ On their machine:
    editing, so their sessions start when work started instead of at the first
    commit. Nothing to configure; it stops after 5 minutes idle.
 
-Uninstall from the palette: `DevPulse: Uninstall from this machine` (restores any
+Uninstall from the palette: `MnlDevTelemetry: Uninstall from this machine` (restores any
 prior global hooks path). Removing the *extension* does not stop telemetry — the
 git hooks are machine-global; run the uninstall command first.
 
@@ -163,9 +163,9 @@ Because the CLI bundles are self-contained (`dist/cli.js` + `dist/agent.js` run
 with bare `node`, no `node_modules`), a teammate needs **no repo checkout**:
 
 1. Build once and hand them the two files (same folder), or have them clone +
-   `pnpm --filter @devpulse/setup build`:
+   `pnpm --filter @mnl-dev-telemetry/setup build`:
    ```bash
-   pnpm --filter @devpulse/setup build   # → packages/setup-cli/dist/{cli,agent}.js
+   pnpm --filter @mnl-dev-telemetry/setup build   # → packages/setup-cli/dist/{cli,agent}.js
    ```
 2. On their machine:
    ```bash
@@ -199,7 +199,7 @@ with bare `node`, no `node_modules`), a teammate needs **no repo checkout**:
 Promote someone to lead (to see the Team view) against the hosted DB:
 
 ```bash
-DATABASE_URL='…direct…' pnpm --filter @devpulse/dashboard exec tsx -e \
+DATABASE_URL='…direct…' pnpm --filter @mnl-dev-telemetry/dashboard exec tsx -e \
   "import {drizzle} from 'drizzle-orm/postgres-js';import postgres from 'postgres';import {sql} from 'drizzle-orm';const s=postgres(process.env.DATABASE_URL,{ssl:'require',max:1});await drizzle(s).execute(sql\`update users set role='lead' where email='YOU@company.com'\`);await s.end();"
 ```
 

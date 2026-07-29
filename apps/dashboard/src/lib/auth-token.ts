@@ -1,5 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { hashAgentToken } from "@devpulse/shared";
+import { hashAgentToken } from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import { agentTokens, type AgentTokenRow } from "@/db/schema";
 

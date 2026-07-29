@@ -1,5 +1,5 @@
 /**
- * Public surface of `@devpulse/setup` for in-process embedders.
+ * Public surface of `@mnl-dev-telemetry/setup` for in-process embedders.
  *
  * The CLI (`dist/cli.js`) remains the primary consumer, but Phase 6's VS Code
  * extension imports these directly and bundles them — deliberately reusing the
@@ -17,7 +17,7 @@ export {
   getStatus,
   type InstallOptions,
   type UninstallOptions,
-  type DevpulseStatus,
+  type MnlDevTelemetryStatus,
   type LastSend,
 } from "./install";
 
@@ -30,7 +30,7 @@ export {
   type Credentials,
 } from "./credentials";
 
-export { devpulseHome, devpulsePaths, type DevpulsePaths } from "./paths";
+export { mnlDevTelemetryHome, mnlDevTelemetryPaths, type MnlDevTelemetryPaths } from "./paths";
 
 export { getGlobalHooksPath } from "./git-config";
 

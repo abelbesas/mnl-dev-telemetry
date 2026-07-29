@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import { randomUUID } from "node:crypto";
-import { IngestClient } from "@devpulse/shared";
+import { IngestClient } from "@mnl-dev-telemetry/shared";
 import { readCredentials } from "./credentials";
 import { collectContext } from "./git";
 import { buildEvent, type HookName } from "./event";
-import { devpulsePaths } from "./paths";
+import { mnlDevTelemetryPaths } from "./paths";
 import { flushSpool, readSpool, writeSpool } from "./spool";
 
 /**
@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   if (!hook || !VALID_HOOKS.includes(hook)) return;
   const gitArgs = process.argv.slice(3);
 
-  const paths = devpulsePaths();
+  const paths = mnlDevTelemetryPaths();
   const creds = readCredentials(paths.credentials);
   if (!creds) return; // not logged in — silently do nothing
 

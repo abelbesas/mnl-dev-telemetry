@@ -1,4 +1,4 @@
-# DevPulse
+# MnlDevTelemetry
 Client-agnostic dev telemetry. Full spec: docs/devpulse-mvp-brief.md — read it first.
 
 ## Rules

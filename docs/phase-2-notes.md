@@ -1,6 +1,6 @@
 # Phase 2 — Setup CLI + git hooks notes
 
-Scope delivered: `packages/setup-cli` (`@devpulse/setup`) — device-auth login,
+Scope delivered: `packages/setup-cli` (`@mnl-dev-telemetry/setup`) — device-auth login,
 git-hook installation via global `core.hooksPath` with chaining, a bundled
 fire-and-forget agent with offline spool/retry, and `install` / `login` /
 `status` / `uninstall` commands. Plus the minimal dashboard device-auth API
@@ -33,7 +33,7 @@ packages/setup-cli/
 ## Key decisions
 
 - **Two bundled CJS entrypoints via tsup** (`cli.js`, `agent.js`), with
-  `@devpulse/shared` + `zod` inlined (`noExternal`). This is the "plain-node
+  `@mnl-dev-telemetry/shared` + `zod` inlined (`noExternal`). This is the "plain-node
   consumer" Phase 1 anticipated: the agent runs on a dev's machine with no
   `node_modules`, yet still builds events with the *canonical* shared schemas
   (CLAUDE.md rule — schemas are never redefined). `install` copies the sibling
@@ -113,7 +113,7 @@ packages/setup-cli/
 ## Run it
 
 ```bash
-pnpm --filter @devpulse/setup build     # produces dist/cli.js + dist/agent.js
+pnpm --filter @mnl-dev-telemetry/setup build     # produces dist/cli.js + dist/agent.js
 pnpm test                                # 55 tests (21 shared, 10 dashboard, 24 setup-cli)
 
 # On a dev machine (dashboard running):

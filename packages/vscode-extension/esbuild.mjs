@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
  * Bundle the extension to a single CJS file (VS Code loads extensions as CJS),
  * and ship the git-hook agent alongside it.
  *
- * `@devpulse/setup` and `@devpulse/shared` are source-only workspace packages,
+ * `@mnl-dev-telemetry/setup` and `@mnl-dev-telemetry/shared` are source-only workspace packages,
  * so esbuild inlines them here exactly as tsup does for the CLI — the extension
  * reuses the tested install/status/uninstall logic instead of reimplementing it
  * (docs/phase-6-extension-brief.md §4). `vscode` is provided by the host and
@@ -29,7 +29,7 @@ function copyAgent() {
   const to = path.join(here, "dist", "agent.js");
   if (!fs.existsSync(from)) {
     throw new Error(
-      `missing ${from} — run \`pnpm --filter @devpulse/setup build\` first ` +
+      `missing ${from} — run \`pnpm --filter @mnl-dev-telemetry/setup build\` first ` +
         "(turbo does this automatically via the build dependency)",
     );
   }

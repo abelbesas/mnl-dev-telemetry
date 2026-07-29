@@ -1,11 +1,11 @@
 {
-  "name": "devpulse-vscode",
-  "displayName": "DevPulse",
-  "description": "One-click DevPulse setup and current-task visibility, right in the editor.",
+  "name": "mnl-dev-telemetry-vscode",
+  "displayName": "MnlDevTelemetry",
+  "description": "One-click MnlDevTelemetry setup and current-task visibility, right in the editor.",
   "version": "0.2.0",
   "//": "private:true keeps this out of npm; `vsce package` is unaffected by it. Set a real marketplace publisher id before `vsce publish` (docs/phase-6-notes.md).",
   "private": true,
-  "publisher": "devpulse",
+  "publisher": "mnl-dev-telemetry",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -17,44 +17,44 @@
     "node": ">=20"
   },
   "categories": ["Other"],
-  "keywords": ["devpulse", "telemetry", "time tracking", "jira", "tempo"],
+  "keywords": ["mnl-dev-telemetry", "telemetry", "time tracking", "jira", "tempo"],
   "main": "./dist/extension.js",
   "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
       {
-        "command": "devpulse.enable",
-        "title": "Enable DevPulse on this machine",
-        "category": "DevPulse"
+        "command": "mnlDevTelemetry.enable",
+        "title": "Enable MnlDevTelemetry on this machine",
+        "category": "MnlDevTelemetry"
       },
       {
-        "command": "devpulse.status",
+        "command": "mnlDevTelemetry.status",
         "title": "Show status",
-        "category": "DevPulse"
+        "category": "MnlDevTelemetry"
       },
       {
-        "command": "devpulse.openDashboard",
+        "command": "mnlDevTelemetry.openDashboard",
         "title": "Open dashboard",
-        "category": "DevPulse"
+        "category": "MnlDevTelemetry"
       },
       {
-        "command": "devpulse.openCurrentTask",
+        "command": "mnlDevTelemetry.openCurrentTask",
         "title": "Open current task",
-        "category": "DevPulse"
+        "category": "MnlDevTelemetry"
       },
       {
-        "command": "devpulse.uninstall",
+        "command": "mnlDevTelemetry.uninstall",
         "title": "Uninstall from this machine",
-        "category": "DevPulse"
+        "category": "MnlDevTelemetry"
       }
     ],
     "configuration": {
-      "title": "DevPulse",
+      "title": "MnlDevTelemetry",
       "properties": {
-        "devpulse.dashboardUrl": {
+        "mnlDevTelemetry.dashboardUrl": {
           "type": "string",
           "default": "https://mnl-dev-telemetry-dashboard.vercel.app",
-          "markdownDescription": "Base URL of your DevPulse dashboard. Used for the device-auth activation page, dashboard/task links, and stored in `~/.devpulse/credentials` when you enable DevPulse.",
+          "markdownDescription": "Base URL of your MnlDevTelemetry dashboard. Used for the device-auth activation page, dashboard/task links, and stored in `~/.devpulse/credentials` when you enable MnlDevTelemetry.",
           "scope": "machine"
         }
       }
@@ -68,8 +68,8 @@
     "package": "node esbuild.mjs --production && vsce package --no-dependencies"
   },
   "dependencies": {
-    "@devpulse/setup": "workspace:*",
-    "@devpulse/shared": "workspace:*"
+    "@mnl-dev-telemetry/setup": "workspace:*",
+    "@mnl-dev-telemetry/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

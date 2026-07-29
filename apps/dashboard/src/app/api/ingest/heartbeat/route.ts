@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   heartbeatRequestSchema,
   type HeartbeatResponse,
-} from "@devpulse/shared";
+} from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import { events } from "@/db/schema";
 import { authenticateAgentToken } from "@/lib/auth-token";

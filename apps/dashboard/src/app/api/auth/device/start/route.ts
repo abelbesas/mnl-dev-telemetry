@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { type DeviceStartResponse } from "@devpulse/shared";
+import { type DeviceStartResponse } from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import { deviceAuthorizations } from "@/db/schema";
 import {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { IngestEvent } from "@devpulse/shared";
+import type { IngestEvent } from "@mnl-dev-telemetry/shared";
 import { flushSpool, SPOOL_CAP } from "../src/spool";
 
 function ev(n: number): IngestEvent {
@@ -8,7 +8,7 @@ function ev(n: number): IngestEvent {
     source: "git_hook",
     type: "commit",
     ts: "2026-07-23T09:00:00.000Z",
-    repo: "devpulse",
+    repo: "mnl-dev-telemetry",
     metadata: {},
   } as IngestEvent;
 }

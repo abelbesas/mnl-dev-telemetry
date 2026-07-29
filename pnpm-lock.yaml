@@ -17,7 +17,7 @@ importers:
 
   apps/dashboard:
     dependencies:
-      '@devpulse/shared':
+      '@mnl-dev-telemetry/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       drizzle-orm:
@@ -69,7 +69,7 @@ importers:
 
   packages/setup-cli:
     dependencies:
-      '@devpulse/shared':
+      '@mnl-dev-telemetry/shared':
         specifier: workspace:*
         version: link:../shared
       zod:
@@ -104,10 +104,10 @@ importers:
 
   packages/vscode-extension:
     dependencies:
-      '@devpulse/setup':
+      '@mnl-dev-telemetry/setup':
         specifier: workspace:*
         version: link:../setup-cli
-      '@devpulse/shared':
+      '@mnl-dev-telemetry/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:

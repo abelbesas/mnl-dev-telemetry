@@ -1,4 +1,4 @@
-import { extractIssueKey, type IngestEvent } from "@devpulse/shared";
+import { extractIssueKey, type IngestEvent } from "@mnl-dev-telemetry/shared";
 
 /**
  * Pure event construction for the git hooks. All git/OS access is done by the

@@ -1,4 +1,4 @@
-# DevPulse
+# MnlDevTelemetry
 
 Client-agnostic developer telemetry. It measures real task time (and how much of it was AI-assisted) by instrumenting **our** machines and tools — never a client's repos, workflows, or Jira. Events land in our own Postgres; Jira/Tempo only ever receive human-approved worklogs.
 
@@ -9,8 +9,8 @@ Full spec: [`docs/devpulse-mvp-brief.md`](docs/devpulse-mvp-brief.md). test
 ```
 apps/dashboard/            Next.js app — UI + ingestion/auth/cron API routes, Drizzle schema
 packages/shared/           zod event schemas, issue-key regex, API client (the contract)
-packages/setup-cli/        npx @devpulse/setup — device-auth login, global git hooks, event agent
-packages/vscode-extension/ DevPulse for VS Code / Cursor — one-click setup, current task in the status bar, presence heartbeats
+packages/setup-cli/        npx @mnl-dev-telemetry/setup — device-auth login, global git hooks, event agent
+packages/vscode-extension/ MnlDevTelemetry for VS Code / Cursor — one-click setup, current task in the status bar, presence heartbeats
 infra/                     docker-compose.yml (local Postgres)
 docs/                      spec, phase notes, deployment + testing guides
 ```
@@ -37,10 +37,10 @@ pnpm install
 cp .env.example .env          # set AUTH_SECRET, DEV_LOGIN_ENABLED=true for local
 pnpm db:up && pnpm db:migrate
 pnpm db:seed:demo             # 3 devs + 1 lead, ~2.5 weeks of events
-pnpm --filter @devpulse/dashboard dev   # http://localhost:3000
+pnpm --filter @mnl-dev-telemetry/dashboard dev   # http://localhost:3000
 ```
 
-Sign in with dev login as `alice@devpulse.local` (dev view) or `dana@devpulse.local` (lead view). The demo walkthrough is at the end of `docs/phase-4-notes.md`.
+Sign in with dev login as `alice@mnl-dev-telemetry.local` (dev view) or `dana@mnl-dev-telemetry.local` (lead view). The demo walkthrough is at the end of `docs/phase-4-notes.md`.
 
 ## Scripts
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { DevpulseStatus } from "@devpulse/setup";
+import type { MnlDevTelemetryStatus } from "@mnl-dev-telemetry/setup";
 import {
   deriveSetupState,
   factsFromStatus,
@@ -10,12 +10,12 @@ import {
 /**
  * Acceptance (brief §6): "unit tests for any pure logic added (state
  * detection)". These encode when the extension believes telemetry is actually
- * flowing — the same question `devpulse-setup status` answers.
+ * flowing — the same question `mnl-dev-telemetry-setup status` answers.
  */
 
 const OURS = "/home/dev/.devpulse/hooks";
 
-function status(overrides: Partial<DevpulseStatus> = {}): DevpulseStatus {
+function status(overrides: Partial<MnlDevTelemetryStatus> = {}): MnlDevTelemetryStatus {
   return {
     home: "/home/dev/.devpulse",
     credentials: { token: "t", baseUrl: "https://dash.example", label: "laptop" },
@@ -118,7 +118,7 @@ describe("partialReason", () => {
 
   it("names an unset hooks path", () => {
     const s = status({ hooksPathIsOurs: false, hooksPath: null });
-    expect(partialReason(s)).toContain("not set to DevPulse");
+    expect(partialReason(s)).toContain("not set to MnlDevTelemetry");
   });
 
   it("names missing hook scripts", () => {

@@ -1,4 +1,4 @@
-# DevPulse — measuring where dev time actually goes
+# MnlDevTelemetry — measuring where dev time actually goes
 
 > Paste-ready for Confluence. The `mermaid` blocks need the Mermaid macro
 > (Confluence Cloud: `/mermaid` → paste the block contents). If your space
@@ -38,7 +38,7 @@ Every commit, branch switch, and push is a footprint with a timestamp on it.
 Nobody has to remember anything — the log already happened. All that's missing is
 something to read those footprints and turn them into hours.
 
-That's DevPulse: a telemetry layer that watches your **own machine's** git
+That's MnlDevTelemetry: a telemetry layer that watches your **own machine's** git
 activity, ships metadata (never code) to a small service, and stitches it into
 "you spent 3h 20m on TEX-142, and Claude was involved."
 
@@ -269,7 +269,7 @@ and it doesn't scale past the people who'll tolerate it.
 So: a VS Code extension. It doesn't reinvent anything — same installer
 underneath, same hooks, same tokens. It just puts a button on it.
 
-- **One-click setup.** "Enable DevPulse" → it runs the install, shows your
+- **One-click setup.** "Enable MnlDevTelemetry" → it runs the install, shows your
   device code, opens the activation page. Sign in, approve, done.
 - **Status bar.** Your current ticket, live, read from the branch you're on.
 - **Branch-name nudge.** On a branch with no ticket key, the status bar quietly
@@ -300,7 +300,7 @@ flowchart TB
     G --> H --> W
   end
 
-  subgraph SRV["DevPulse service"]
+  subgraph SRV["MnlDevTelemetry service"]
     I["Ingestion API<br/>token auth · validated · idempotent"]
     DB[("Postgres<br/>append-only events")]
     S["Stitcher<br/>45-min gap · working hours · AI flag"]
@@ -344,7 +344,7 @@ back to Jira yet.
 
 ## What's next
 
-**1. Close the loop to Jira/Tempo.** Right now DevPulse *measures* hours; it
+**1. Close the loop to Jira/Tempo.** Right now MnlDevTelemetry *measures* hours; it
 doesn't log them. Next up: nightly drafts of "here's your time per ticket per
 day," a screen to edit and approve them, and one click to push approved worklogs
 to Tempo. Human approval stays in the loop — no silent auto-logging, ever. That's

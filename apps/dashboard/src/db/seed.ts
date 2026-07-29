@@ -2,7 +2,7 @@ import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { generateAgentToken, hashAgentToken } from "@devpulse/shared";
+import { generateAgentToken, hashAgentToken } from "@mnl-dev-telemetry/shared";
 import { pgOptions } from "./connection";
 import * as schema from "./schema";
 
@@ -17,7 +17,7 @@ async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
 
-  const email = process.env.SEED_EMAIL ?? "dev@devpulse.local";
+  const email = process.env.SEED_EMAIL ?? "dev@mnl-dev-telemetry.local";
   const name = process.env.SEED_NAME ?? "Seed Dev";
 
   const sql = postgres(url, { ...pgOptions(url), max: 1 });

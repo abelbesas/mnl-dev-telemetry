@@ -4,7 +4,7 @@
     {
       "name": "dashboard",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@devpulse/dashboard", "dev"],
+      "runtimeArgs": ["--filter", "@mnl-dev-telemetry/dashboard", "dev"],
       "port": 3000
     }
   ]

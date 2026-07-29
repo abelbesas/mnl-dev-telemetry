@@ -1,5 +1,5 @@
-import { extractIssueKey, HEARTBEAT_INTERVAL_MINUTES } from "@devpulse/shared";
-import type { DevpulseStatus, LastSend } from "@devpulse/setup";
+import { extractIssueKey, HEARTBEAT_INTERVAL_MINUTES } from "@mnl-dev-telemetry/shared";
+import type { MnlDevTelemetryStatus, LastSend } from "@mnl-dev-telemetry/setup";
 import { partialReason, type SetupState } from "./state";
 import { normalizeDashboardUrl, timelineUrl } from "./urls";
 
@@ -25,7 +25,7 @@ export interface RepoContext {
 export interface PresentationInput {
   state: PresentationState;
   /** `getStatus()` result, or null before the first detection finishes. */
-  status: DevpulseStatus | null;
+  status: MnlDevTelemetryStatus | null;
   dashboardUrl: string;
   repo: RepoContext | null;
   /** Injected so relative times are testable. */
@@ -121,39 +121,39 @@ export function statusPresentation(
 
   if (input.state === "checking") {
     return {
-      text: "$(pulse) DevPulse",
-      tooltip: md(["**DevPulse**", "Checking this machine…"]),
-      command: "devpulse.status",
+      text: "$(pulse) MnlDevTelemetry",
+      tooltip: md(["**MnlDevTelemetry**", "Checking this machine…"]),
+      command: "mnlDevTelemetry.status",
       warning: false,
-      ariaLabel: "DevPulse: checking",
+      ariaLabel: "MnlDevTelemetry: checking",
     };
   }
 
   if (input.state === "not-installed") {
     return {
-      text: "$(pulse) DevPulse: Set up",
+      text: "$(pulse) MnlDevTelemetry: Set up",
       tooltip: md([
-        "**DevPulse is not set up on this machine**",
+        "**MnlDevTelemetry is not set up on this machine**",
         "Click to enable: you approve once in the browser, then commits, branch switches and pushes report metadata only (never code).",
       ]),
-      command: "devpulse.enable",
+      command: "mnlDevTelemetry.enable",
       warning: false,
-      ariaLabel: "DevPulse: not set up, click to enable",
+      ariaLabel: "MnlDevTelemetry: not set up, click to enable",
     };
   }
 
   if (input.state === "partial") {
     const reason = input.status ? partialReason(input.status) : null;
     return {
-      text: "$(pulse) DevPulse: Finish setup",
+      text: "$(pulse) MnlDevTelemetry: Finish setup",
       tooltip: md([
-        "**DevPulse setup is incomplete**",
+        "**MnlDevTelemetry setup is incomplete**",
         reason ?? "",
         "Click to finish — re-running setup is idempotent.",
       ]),
-      command: "devpulse.enable",
+      command: "mnlDevTelemetry.enable",
       warning: true,
-      ariaLabel: "DevPulse: setup incomplete, click to finish",
+      ariaLabel: "MnlDevTelemetry: setup incomplete, click to finish",
     };
   }
 
@@ -164,44 +164,44 @@ export function statusPresentation(
     return {
       text: `$(pulse) ${issueKey}`,
       tooltip: md([
-        `**DevPulse — ${issueKey}**`,
+        `**MnlDevTelemetry — ${issueKey}**`,
         ...repoLine(input.repo, issueKey),
         "Click to open this task in the dashboard.",
         ...activeFooter(input),
       ]),
-      command: "devpulse.openCurrentTask",
+      command: "mnlDevTelemetry.openCurrentTask",
       warning: false,
-      ariaLabel: `DevPulse: current task ${issueKey}`,
+      ariaLabel: `MnlDevTelemetry: current task ${issueKey}`,
     };
   }
 
   // On a branch, but its name carries no issue key — the nudge (brief §3.5).
   if (input.repo?.branch) {
     return {
-      text: "$(pulse) DevPulse: no ticket",
+      text: "$(pulse) MnlDevTelemetry: no ticket",
       tooltip: md([
-        "**DevPulse is running, but this branch has no issue key**",
+        "**MnlDevTelemetry is running, but this branch has no issue key**",
         ...repoLine(input.repo, null),
         BRANCH_NUDGE,
         "Time is still recorded — it just groups by repo + branch instead of a ticket.",
         ...activeFooter(input),
       ]),
-      command: "devpulse.openDashboard",
+      command: "mnlDevTelemetry.openDashboard",
       warning: true,
-      ariaLabel: "DevPulse: active, current branch has no issue key",
+      ariaLabel: "MnlDevTelemetry: active, current branch has no issue key",
     };
   }
 
   // Active, but nothing git-shaped is open (no folder, or not a repo).
   return {
-    text: "$(pulse) DevPulse ✓",
+    text: "$(pulse) MnlDevTelemetry ✓",
     tooltip: md([
-      "**DevPulse is active on this machine**",
+      "**MnlDevTelemetry is active on this machine**",
       "No git repository open in this window — hooks are machine-global, so commits anywhere still report.",
       ...activeFooter(input),
     ]),
-    command: "devpulse.openDashboard",
+    command: "mnlDevTelemetry.openDashboard",
     warning: false,
-    ariaLabel: "DevPulse: active",
+    ariaLabel: "MnlDevTelemetry: active",
   };
 }

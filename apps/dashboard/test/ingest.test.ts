@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { IngestEvent } from "@devpulse/shared";
+import type { IngestEvent } from "@mnl-dev-telemetry/shared";
 import {
   dedupeEvents,
   parseBearerToken,
@@ -15,7 +15,7 @@ function ev(uuid: string, overrides: Partial<IngestEvent> = {}): IngestEvent {
     source: "git_hook",
     type: "commit",
     ts,
-    repo: "devpulse",
+    repo: "mnl-dev-telemetry",
     branch: "feature/ABC-123",
     ...overrides,
   } as IngestEvent;

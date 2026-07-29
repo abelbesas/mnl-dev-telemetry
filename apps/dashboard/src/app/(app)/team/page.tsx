@@ -1,4 +1,4 @@
-import { DEFAULT_TZ } from "@devpulse/shared";
+import { DEFAULT_TZ } from "@mnl-dev-telemetry/shared";
 import { BarChart, LineChart } from "@/components/charts";
 import { InfoTip } from "@/components/InfoTip";
 import {
@@ -95,7 +95,7 @@ export default async function TeamPage() {
         <div className="card stat">
           <div className="label">
             Team
-            <InfoTip text="People set up in DevPulse (developers plus leads)." />
+            <InfoTip text="People set up in MnlDevTelemetry (developers plus leads)." />
           </div>
           <div className="value">
             {headcount.devs + headcount.leads}

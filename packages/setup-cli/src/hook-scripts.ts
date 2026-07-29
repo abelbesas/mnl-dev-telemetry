@@ -21,8 +21,8 @@ export const HOOK_NAMES: readonly HookName[] = [
 ];
 
 const HEADER = (hook: HookName) => `#!/bin/sh
-# DevPulse ${hook} hook — managed by @devpulse/setup. Do not edit.
-# Regenerate with \`npx @devpulse/setup install\`; remove with \`--uninstall\`.
+# MnlDevTelemetry ${hook} hook — managed by @mnl-dev-telemetry/setup. Do not edit.
+# Regenerate with \`npx @mnl-dev-telemetry/setup install\`; remove with \`--uninstall\`.
 set +e
 DEVPULSE_HOME="\${DEVPULSE_HOME:-$HOME/.devpulse}"
 HOOK="${hook}"
@@ -62,7 +62,7 @@ function prePushHook(): string {
   return `${HEADER("pre-push")}
 ${READ_PREV}
 if [ -n "$PREV" ] && [ -x "$PREV/$HOOK" ]; then
-  STDIN_TMP="$(mktemp 2>/dev/null || echo "\${TMPDIR:-/tmp}/devpulse-prepush.$$")"
+  STDIN_TMP="$(mktemp 2>/dev/null || echo "\${TMPDIR:-/tmp}/mnl-dev-telemetry-prepush.$$")"
   cat > "$STDIN_TMP"
 ${FIRE_AND_FORGET}  "$PREV/$HOOK" "$@" < "$STDIN_TMP"
   CODE=$?

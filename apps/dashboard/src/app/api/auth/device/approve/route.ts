@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { DeviceApproveResponse } from "@devpulse/shared";
+import type { DeviceApproveResponse } from "@mnl-dev-telemetry/shared";
 import { auth } from "@/auth";
 import { approveDeviceForUser } from "@/lib/device-approve";
 

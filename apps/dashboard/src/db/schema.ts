@@ -13,7 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * DevPulse data model (spec §3). The full model is defined here in Phase 1 so
+ * MnlDevTelemetry data model (spec §3). The full model is defined here in Phase 1 so
  * later phases add rows, not migrations to the shared shape. Only `users`,
  * `agent_tokens` and `events` are exercised by Phase 1 code; the rest exist so
  * the schema is complete and stable.

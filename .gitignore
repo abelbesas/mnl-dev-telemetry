@@ -10,7 +10,7 @@ coverage/
 .env.*
 !.env.example
 
-# DevPulse agent spool (dev machine, never committed)
+# MnlDevTelemetry agent spool (dev machine, never committed)
 .devpulse-spool/
 
 # OS / editor

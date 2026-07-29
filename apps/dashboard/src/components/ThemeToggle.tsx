@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  * OS (prefers-color-scheme), which is what `resolved` reports back.
  */
 
-export const THEME_STORAGE_KEY = "devpulse-theme";
+export const THEME_STORAGE_KEY = "mnl-dev-telemetry-theme";
 
 type Theme = "dark" | "light";
 

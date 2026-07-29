@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { MAX_EVENTS_PER_BATCH, type IngestEvent } from "@devpulse/shared";
+import { MAX_EVENTS_PER_BATCH, type IngestEvent } from "@mnl-dev-telemetry/shared";
 
 /**
  * Offline spool + retry (spec §4.3, item 2). A hook must never block or break a

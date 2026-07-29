@@ -17,7 +17,7 @@ import {
  */
 
 export interface IngestClientOptions {
-  /** Dashboard base URL, e.g. `https://devpulse.example.com`. */
+  /** Dashboard base URL, e.g. `https://mnl-dev-telemetry.example.com`. */
   baseUrl: string;
   /** Agent bearer token. */
   token: string;

@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // @devpulse/shared is published as TypeScript source (no build step); let
+  // @mnl-dev-telemetry/shared is published as TypeScript source (no build step); let
   // Next transpile it as part of the app build.
-  transpilePackages: ["@devpulse/shared"],
+  transpilePackages: ["@mnl-dev-telemetry/shared"],
   serverExternalPackages: ["postgres"],
 };
 

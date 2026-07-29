@@ -6,16 +6,16 @@ import type { StatusPresentation } from "./lib/presentation";
  * StatusBarItem. All the rules about *what* to show live in
  * `lib/presentation.ts` so they can be tested without an extension host.
  */
-export class DevPulseStatusBar implements vscode.Disposable {
+export class MnlDevTelemetryStatusBar implements vscode.Disposable {
   private readonly item: vscode.StatusBarItem;
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(
-      "devpulse.status",
+      "mnlDevTelemetry.status",
       vscode.StatusBarAlignment.Right,
       100,
     );
-    this.item.name = "DevPulse";
+    this.item.name = "MnlDevTelemetry";
     this.item.show();
   }
 

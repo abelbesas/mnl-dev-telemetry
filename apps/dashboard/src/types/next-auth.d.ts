@@ -1,7 +1,7 @@
 import type { DefaultSession } from "next-auth";
 
 /**
- * Augment Auth.js types with the DevPulse identity fields we stamp onto the
+ * Augment Auth.js types with the MnlDevTelemetry identity fields we stamp onto the
  * token/session in `auth.ts` (the DB user id and role).
  */
 declare module "next-auth" {

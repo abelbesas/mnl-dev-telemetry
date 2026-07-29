@@ -1,9 +1,9 @@
 {
-  "name": "@devpulse/setup",
+  "name": "@mnl-dev-telemetry/setup",
   "version": "0.0.0",
   "private": true,
   "bin": {
-    "devpulse-setup": "./dist/cli.js"
+    "mnl-dev-telemetry-setup": "./dist/cli.js"
   },
   "//": "main/types point at source: this is a workspace-internal package and its only in-process consumer (the VS Code extension) bundles it with esbuild. The shipped artefacts stay the two CJS bundles in dist/.",
   "main": "./src/index.ts",
@@ -20,7 +20,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@devpulse/shared": "workspace:*",
+    "@mnl-dev-telemetry/shared": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
