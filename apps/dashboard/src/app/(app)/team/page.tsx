@@ -1,5 +1,6 @@
 import { DEFAULT_TZ } from "@devpulse/shared";
 import { BarChart, LineChart } from "@/components/charts";
+import { InfoTip } from "@/components/InfoTip";
 import {
   cohortComparison,
   compressionByWeek,
@@ -66,24 +67,36 @@ export default async function TeamPage() {
 
       <div className="grid cols-4" style={{ marginBottom: "1.5rem" }}>
         <div className="card stat">
-          <div className="label">Reported time</div>
+          <div className="label">
+            Reported time
+            <InfoTip text="Total working-hours time across the whole team in this window (last 4 weeks)." />
+          </div>
           <div className="value">{totalHours}h</div>
           <div className="sub">{sessions.length} sessions</div>
         </div>
         <div className="card stat">
-          <div className="label">Tickets worked</div>
+          <div className="label">
+            Tickets worked
+            <InfoTip text="Number of distinct tickets that had any recorded activity in this window." />
+          </div>
           <div className="value">{totalTickets}</div>
           <div className="sub">with recorded activity</div>
         </div>
         <div className="card stat">
-          <div className="label">AI-assisted tickets</div>
+          <div className="label">
+            AI-assisted tickets
+            <InfoTip text="Share of worked tickets where at least one session used an AI agent." />
+          </div>
           <div className="value">{aiTicketPct}%</div>
           <div className="sub">
             {aiTickets} of {totalTickets}
           </div>
         </div>
         <div className="card stat">
-          <div className="label">Team</div>
+          <div className="label">
+            Team
+            <InfoTip text="People set up in DevPulse (developers plus leads)." />
+          </div>
           <div className="value">
             {headcount.devs + headcount.leads}
           </div>
