@@ -99,7 +99,7 @@ export default async function TaskDetailPage({
         </p>
       </div>
 
-      <div className="grid cols-4" style={{ marginBottom: "1.5rem" }}>
+      <div className="grid cols-3" style={{ marginBottom: "1.5rem" }}>
         <div className="card stat">
           <div className="label">
             Estimate
@@ -116,15 +116,14 @@ export default async function TaskDetailPage({
             <InfoTip text="Your real time on this ticket inside working hours, summed from all your sessions. This is what would be logged to Jira." />
           </div>
           <div className="value">{toHours(actualSeconds)}h</div>
-          <div className="sub">{detail.sessions.length} sessions</div>
-        </div>
-        <div className="card stat">
-          <div className="label">
-            Raw span
-            <InfoTip text="Wall-clock time from your first to last activity on this ticket, before trimming to your working hours. Usually higher than reported." />
+          <div className="sub">
+            {detail.sessions.length} sessions
+            {/* Raw only earns space when the working-hours clamp actually
+                trimmed something. */}
+            {toHours(rawSeconds) !== toHours(actualSeconds)
+              ? ` · ${toHours(rawSeconds)}h raw`
+              : ""}
           </div>
-          <div className="value">{toHours(rawSeconds)}h</div>
-          <div className="sub">before working-hours clamp</div>
         </div>
         <div className="card stat">
           <div className="label">

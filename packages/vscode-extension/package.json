@@ -1,0 +1,82 @@
+{
+  "name": "devpulse-vscode",
+  "displayName": "DevPulse",
+  "description": "One-click DevPulse setup and current-task visibility, right in the editor.",
+  "version": "0.1.0",
+  "//": "private:true keeps this out of npm; `vsce package` is unaffected by it. Set a real marketplace publisher id before `vsce publish` (docs/phase-6-notes.md).",
+  "private": true,
+  "publisher": "devpulse",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abelbesas/mnl-dev-telemetry.git",
+    "directory": "packages/vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=20"
+  },
+  "categories": ["Other"],
+  "keywords": ["devpulse", "telemetry", "time tracking", "jira", "tempo"],
+  "main": "./dist/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "devpulse.enable",
+        "title": "Enable DevPulse on this machine",
+        "category": "DevPulse"
+      },
+      {
+        "command": "devpulse.status",
+        "title": "Show status",
+        "category": "DevPulse"
+      },
+      {
+        "command": "devpulse.openDashboard",
+        "title": "Open dashboard",
+        "category": "DevPulse"
+      },
+      {
+        "command": "devpulse.openCurrentTask",
+        "title": "Open current task",
+        "category": "DevPulse"
+      },
+      {
+        "command": "devpulse.uninstall",
+        "title": "Uninstall from this machine",
+        "category": "DevPulse"
+      }
+    ],
+    "configuration": {
+      "title": "DevPulse",
+      "properties": {
+        "devpulse.dashboardUrl": {
+          "type": "string",
+          "default": "https://mnl-dev-telemetry-dashboard.vercel.app",
+          "markdownDescription": "Base URL of your DevPulse dashboard. Used for the device-auth activation page, dashboard/task links, and stored in `~/.devpulse/credentials` when you enable DevPulse.",
+          "scope": "machine"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "node esbuild.mjs --production && vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@devpulse/setup": "workspace:*",
+    "@devpulse/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

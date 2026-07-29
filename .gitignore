@@ -16,3 +16,9 @@ coverage/
 # OS / editor
 .DS_Store
 *.log
+
+# VS Code extension packages (built artefact)
+*.vsix
+
+# VS Code extension dev-host scratch state
+packages/vscode-extension/.devpulse-dev/

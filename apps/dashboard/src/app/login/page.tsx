@@ -59,7 +59,7 @@ export default async function LoginPage({
 
         {isGoogleEnabled ? (
           <form action={googleSignIn} style={{ marginBottom: "1rem" }}>
-            <button className="btn" style={{ width: "100%" }} type="submit">
+            <button className="btn block" type="submit">
               Continue with Google
             </button>
           </form>
@@ -83,7 +83,7 @@ export default async function LoginPage({
                 style={{ width: "100%" }}
               />
             </label>
-            <button className="btn secondary" style={{ width: "100%" }} type="submit">
+            <button className="btn secondary block" type="submit">
               Dev sign-in
             </button>
             <p className="muted" style={{ fontSize: "0.78rem", marginTop: "0.6rem" }}>

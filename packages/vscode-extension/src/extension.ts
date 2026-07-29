@@ -1,0 +1,264 @@
+import * as vscode from "vscode";
+import { getStatus, type DevpulseStatus } from "@devpulse/setup";
+import { GitContext } from "./git-context";
+import {
+  issueKeyForRepo,
+  statusPresentation,
+  type PresentationState,
+  type RepoContext,
+} from "./lib/presentation";
+import { statusReportLines } from "./lib/report";
+import { setupStateFromStatus } from "./lib/state";
+import {
+  normalizeDashboardUrl,
+  taskUrl,
+  timelineUrl,
+} from "./lib/urls";
+import { runEnableFlow, runUninstallFlow } from "./setup-flow";
+import { DevPulseStatusBar } from "./status-bar";
+
+/**
+ * DevPulse for VS Code / Cursor — a thin wrapper around `@devpulse/setup`
+ * (docs/phase-6-extension-brief.md). It makes setup one click and shows the
+ * current task in the status bar; it never sends telemetry itself, never reads
+ * code, and never holds Jira/Tempo credentials. Git hooks are machine-global, so
+ * if this extension is disabled telemetry keeps flowing.
+ *
+ * Activation does no fs, git or network work — everything is deferred to a
+ * microtask after `activate()` returns (brief §6: <100ms activation budget).
+ */
+
+const WELCOME_DISMISSED_KEY = "devpulse.welcomeDismissed";
+/** Keeps the tooltip's "last event sent" honest without user interaction. */
+const REFRESH_INTERVAL_MS = 60_000;
+
+function dashboardUrlSetting(): string {
+  return normalizeDashboardUrl(
+    vscode.workspace.getConfiguration("devpulse").get<string>("dashboardUrl"),
+  );
+}
+
+class DevPulse implements vscode.Disposable {
+  private readonly disposables: vscode.Disposable[] = [];
+  private readonly statusBar = new DevPulseStatusBar();
+  private readonly git = new GitContext();
+  private readonly channel: vscode.OutputChannel;
+
+  private state: PresentationState = "checking";
+  private status: DevpulseStatus | null = null;
+  private repo: RepoContext | null = null;
+
+  private refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  private refreshing = false;
+  private refreshQueued = false;
+
+  constructor(private readonly context: vscode.ExtensionContext) {
+    this.channel = vscode.window.createOutputChannel("DevPulse");
+    this.disposables.push(this.channel, this.statusBar, this.git);
+    this.render();
+  }
+
+  // --- lifecycle ----------------------------------------------------------
+
+  /** Register everything that is cheap enough for the activation path. */
+  wireCommands(): void {
+    const cmd = (id: string, fn: () => unknown) =>
+      this.disposables.push(vscode.commands.registerCommand(id, fn));
+
+    cmd("devpulse.enable", () => this.enable());
+    cmd("devpulse.status", () => this.showStatusReport());
+    cmd("devpulse.openDashboard", () => this.openDashboard());
+    cmd("devpulse.openCurrentTask", () => this.openCurrentTask());
+    cmd("devpulse.uninstall", () => this.uninstall());
+
+    this.disposables.push(
+      this.git.onDidChange(() => this.scheduleRefresh()),
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("devpulse.dashboardUrl")) this.render();
+      }),
+      vscode.window.onDidChangeWindowState((s) => {
+        if (s.focused) this.scheduleRefresh();
+      }),
+    );
+
+    const interval = setInterval(() => {
+      if (vscode.window.state.focused) this.scheduleRefresh();
+    }, REFRESH_INTERVAL_MS);
+    this.disposables.push({ dispose: () => clearInterval(interval) });
+  }
+
+  /** Deferred init — the first thing that is allowed to touch fs/git. */
+  async start(): Promise<void> {
+    await this.git.wire();
+    await this.refresh();
+    await this.maybeShowWelcome();
+  }
+
+  dispose(): void {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    for (const d of this.disposables) d.dispose();
+  }
+
+  // --- state --------------------------------------------------------------
+
+  /** Coalesce bursts of git events into one refresh. */
+  private scheduleRefresh(): void {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => {
+      this.refreshTimer = undefined;
+      void this.refresh();
+    }, 150);
+  }
+
+  private async refresh(): Promise<void> {
+    if (this.refreshing) {
+      this.refreshQueued = true;
+      return;
+    }
+    this.refreshing = true;
+    try {
+      // Sync fs reads + one `git config --global` subprocess. Cheap, but never
+      // on the activation path.
+      try {
+        this.status = getStatus();
+        this.state = setupStateFromStatus(this.status);
+      } catch (err) {
+        this.channel.appendLine(
+          `! could not read DevPulse state: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+      }
+      this.repo = await this.git.getRepoContext();
+      this.render();
+    } finally {
+      this.refreshing = false;
+      if (this.refreshQueued) {
+        this.refreshQueued = false;
+        this.scheduleRefresh();
+      }
+    }
+  }
+
+  private render(): void {
+    this.statusBar.apply(
+      statusPresentation({
+        state: this.state,
+        status: this.status,
+        dashboardUrl: dashboardUrlSetting(),
+        repo: this.repo,
+        now: new Date(),
+      }),
+    );
+  }
+
+  // --- commands -----------------------------------------------------------
+
+  private async enable(): Promise<void> {
+    const result = await runEnableFlow(
+      this.context,
+      this.channel,
+      dashboardUrlSetting(),
+    );
+    await this.refresh();
+
+    if (result.cancelled) {
+      void vscode.window.showInformationMessage(
+        "DevPulse setup cancelled. Run “DevPulse: Enable DevPulse on this machine” whenever you're ready.",
+      );
+      return;
+    }
+    if (!result.ok) return;
+
+    const choice = await vscode.window.showInformationMessage(
+      "DevPulse is active. Commits, branch switches and pushes now report metadata only — never code.",
+      "Open dashboard",
+    );
+    if (choice === "Open dashboard") await this.openDashboard();
+  }
+
+  private async uninstall(): Promise<void> {
+    if (await runUninstallFlow(this.channel)) await this.refresh();
+  }
+
+  private async openDashboard(): Promise<void> {
+    await vscode.env.openExternal(
+      vscode.Uri.parse(timelineUrl(dashboardUrlSetting())),
+    );
+  }
+
+  private async openCurrentTask(): Promise<void> {
+    await this.refresh();
+    const issueKey = issueKeyForRepo(this.repo);
+    if (!issueKey) {
+      const choice = await vscode.window.showInformationMessage(
+        this.repo?.branch
+          ? `No issue key in branch “${this.repo.branch}”. Name branches like TEX-123-short-description so time lands on the ticket.`
+          : "No git repository open in this window.",
+        "Open dashboard",
+      );
+      if (choice === "Open dashboard") await this.openDashboard();
+      return;
+    }
+    await vscode.env.openExternal(
+      vscode.Uri.parse(taskUrl(dashboardUrlSetting(), issueKey)),
+    );
+  }
+
+  private async showStatusReport(): Promise<void> {
+    await this.refresh();
+    if (!this.status) {
+      void vscode.window.showWarningMessage("DevPulse: could not read local state.");
+      return;
+    }
+    this.channel.appendLine("");
+    for (const line of statusReportLines({
+      state: this.state === "checking" ? "not-installed" : this.state,
+      status: this.status,
+      dashboardUrl: dashboardUrlSetting(),
+      repo: this.repo,
+      now: new Date(),
+    })) {
+      this.channel.appendLine(line);
+    }
+    this.channel.show(true);
+  }
+
+  // --- first run ----------------------------------------------------------
+
+  private async maybeShowWelcome(): Promise<void> {
+    if (this.state === "active") return;
+    if (this.context.globalState.get<boolean>(WELCOME_DISMISSED_KEY)) return;
+
+    const choice = await vscode.window.showInformationMessage(
+      this.state === "partial"
+        ? "DevPulse setup is incomplete on this machine. Finish it to start reporting time against your tickets."
+        : "Enable DevPulse to track task time automatically? You approve once in the browser; only metadata (repo, branch, ticket, diff counts) is ever sent — never code.",
+      "Enable DevPulse",
+      "Not now",
+      "Don't ask again",
+    );
+    if (choice === "Enable DevPulse") {
+      await this.enable();
+    } else if (choice === "Don't ask again") {
+      await this.context.globalState.update(WELCOME_DISMISSED_KEY, true);
+    }
+  }
+}
+
+export function activate(context: vscode.ExtensionContext): void {
+  const devpulse = new DevPulse(context);
+  devpulse.wireCommands();
+  context.subscriptions.push(devpulse);
+
+  // Everything that touches fs, git or the network happens after activation
+  // returns, so the extension host is never blocked at startup (brief §6).
+  setTimeout(() => {
+    void devpulse.start();
+  }, 0);
+}
+
+export function deactivate(): void {
+  // Nothing to do: disposables are owned by `context.subscriptions`, and
+  // telemetry keeps flowing regardless (git hooks are machine-global).
+}

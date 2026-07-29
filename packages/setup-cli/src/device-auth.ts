@@ -35,6 +35,15 @@ export interface DeviceLoginOptions {
   /** Overall timeout for the whole handshake, ms. */
   timeoutMs?: number;
   log?: (msg: string) => void;
+  /**
+   * Structured notification of the freshly minted code, fired once before
+   * polling starts. The CLI relies on `log` alone; GUI callers (the VS Code
+   * extension) need the code and verification URI as data so they can render a
+   * progress notification with an "Open activation page" button.
+   */
+  onCode?: (start: DeviceStartResponse) => void;
+  /** Abort the poll loop early (a cancelled GUI progress notification). */
+  signal?: AbortSignal;
 }
 
 export async function deviceLogin(
@@ -45,6 +54,8 @@ export async function deviceLogin(
 
   const startRaw = await postJson(`${baseUrl}/api/auth/device/start`, {});
   const start: DeviceStartResponse = deviceStartResponseSchema.parse(startRaw);
+
+  opts.onCode?.(start);
 
   log("");
   log("To connect this machine to DevPulse:");
@@ -65,7 +76,9 @@ export async function deviceLogin(
   const intervalMs = Math.max(1, start.interval) * 1000;
 
   while (Date.now() < deadline) {
+    if (opts.signal?.aborted) throw new Error("login cancelled");
     await sleep(intervalMs);
+    if (opts.signal?.aborted) throw new Error("login cancelled");
     const raw = await postJson(`${baseUrl}/api/auth/device/token`, {
       device_code: start.device_code,
     });

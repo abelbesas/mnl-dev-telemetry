@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run DevPulse extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "preLaunchTask": "npm: build",
+      "env": {
+        "//": "Keep a debug session off your real install: point DevPulse at scratch paths before enabling it in the dev host.",
+        "DEVPULSE_HOME": "${workspaceFolder}/.devpulse-dev",
+        "GIT_CONFIG_GLOBAL": "${workspaceFolder}/.devpulse-dev/gitconfig"
+      }
+    }
+  ]
+}

@@ -1,4 +1,11 @@
-:root {
+/**
+ * Theming: dark is the default. `data-theme` on <html> wins in both directions
+ * (set by the theme toggle + the no-flash script in the root layout); when the
+ * user has never chosen, we follow the OS via prefers-color-scheme.
+ */
+
+:root,
+:root[data-theme="dark"] {
   --bg: #0b0e14;
   --panel: #131722;
   --panel-2: #1a1f2e;
@@ -15,6 +22,44 @@
   --radius: 10px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --panel-2: #eef1f6;
+  --border: #d9dee7;
+  --text: #16191f;
+  --muted: #5f6878;
+  --accent: #2563eb;
+  --accent-strong: #2563eb;
+  --ai: #7c3aed;
+  --ai-bg: #ede9fe;
+  --good: #0f9d63;
+  --warn: #b45309;
+  --bad: #dc2626;
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --panel-2: #eef1f6;
+    --border: #d9dee7;
+    --text: #16191f;
+    --muted: #5f6878;
+    --accent: #2563eb;
+    --accent-strong: #2563eb;
+    --ai: #7c3aed;
+    --ai-bg: #ede9fe;
+    --good: #0f9d63;
+    --warn: #b45309;
+    --bad: #dc2626;
+    --shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+    color-scheme: light;
+  }
 }
 
 * {
@@ -129,6 +174,58 @@ h3 {
   border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.8rem;
+  /* The sidebar is a fixed 220px column; long emails must wrap/ellipsis
+     rather than push the layout wider. */
+  min-width: 0;
+  overflow: hidden;
+}
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  margin-bottom: 0.25rem;
+}
+.user-name {
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.user-email {
+  font-size: 0.72rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0.6rem;
+}
+.user-row .badge.role {
+  flex: none;
 }
 
 .content {
@@ -284,6 +381,8 @@ th.num {
 .btn {
   display: inline-flex;
   align-items: center;
+  /* Centres the label in both auto-width and full-width (.block) buttons. */
+  justify-content: center;
   gap: 0.4rem;
   background: var(--accent-strong);
   color: white;
@@ -292,7 +391,14 @@ th.num {
   padding: 0.5rem 0.9rem;
   font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
+  white-space: nowrap;
+}
+/* Full-width button; use instead of inline width:100%. */
+.btn.block {
+  display: flex;
+  width: 100%;
 }
 .btn:hover {
   filter: brightness(1.08);
@@ -405,8 +511,12 @@ label.field span {
 .infotip {
   position: relative;
   display: inline-flex;
+  align-items: center;
+  /* Optically centre the icon against the label's cap height — plain
+     `middle` sits a touch low next to uppercase text. */
   vertical-align: middle;
-  margin-left: 0.3rem;
+  top: -1px;
+  margin-left: 0.35rem;
   outline: none;
 }
 .infotip-icon {
