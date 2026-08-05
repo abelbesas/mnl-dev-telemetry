@@ -1,4 +1,8 @@
+<img src="docs/img/mnl-telemetry-logo.png" width="72" height="72" alt="" align="left" />
+
 # MnlDevTelemetry
+
+<br clear="left"/>
 
 Client-agnostic developer telemetry. It measures real task time (and how much of it was AI-assisted) by instrumenting **our** machines and tools — never a client's repos, workflows, or Jira. Events land in our own Postgres; Jira/Tempo only ever receive human-approved worklogs.
 

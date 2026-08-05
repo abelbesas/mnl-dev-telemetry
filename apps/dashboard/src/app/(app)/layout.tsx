@@ -19,6 +19,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
+          <picture>
+            <source srcSet="/logo.webp" type="image/webp" />
+            <img
+              className="brand-mark"
+              src="/logo.png"
+              width={28}
+              height={28}
+              alt=""
+            />
+          </picture>
           MnlDev<span>Telemetry</span>
         </div>
         <Nav role={user.role} />

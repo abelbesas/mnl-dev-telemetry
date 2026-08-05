@@ -6,6 +6,7 @@
   "//": "private:true keeps this out of npm; `vsce package` is unaffected by it. Set a real marketplace publisher id before `vsce publish` (docs/phase-6-notes.md).",
   "private": true,
   "publisher": "mnl-dev-telemetry",
+  "icon": "icon.png",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
