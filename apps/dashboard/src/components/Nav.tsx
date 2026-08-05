@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS: { href: string; label: string; leadOnly?: boolean }[] = [
   { href: "/timeline", label: "My timeline" },
+  { href: "/drafts", label: "Drafts" },
   { href: "/team", label: "Team", leadOnly: true },
   { href: "/settings", label: "Settings" },
   { href: "/activate", label: "Activate device" },
