@@ -397,6 +397,119 @@ th.num {
   flex: 1;
 }
 
+/* --- Timeline progress bars -------------------------------------------- */
+
+/* Cumulative burn against the ticket's estimate (lib/progress.ts). */
+.progress-tip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  cursor: help;
+}
+.progress-track {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.progress-track .seg {
+  display: block;
+  height: 100%;
+}
+/* Time logged before this session — present but visually recessed. */
+.seg-prior {
+  background: color-mix(in srgb, var(--accent-strong) 38%, transparent);
+}
+.seg-session {
+  background: var(--accent-strong);
+}
+.seg-over-prior {
+  background: color-mix(in srgb, var(--bad) 42%, transparent);
+}
+.seg-over-session {
+  background: var(--bad);
+}
+/* Dashed line at the estimate, drawn only once the bar has gone past it. */
+.estimate-marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 0;
+  border-left: 2px dashed var(--text);
+  opacity: 0.75;
+}
+.progress-pct {
+  flex: none;
+  min-width: 3.2em;
+  text-align: right;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.progress-pct.over {
+  color: var(--bad);
+  font-weight: 600;
+}
+.no-progress {
+  flex: 1;
+  font-size: 0.78rem;
+}
+.set-estimate {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border);
+  align-self: center;
+  flex: none;
+}
+.set-estimate:hover {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom-color: var(--accent);
+}
+
+/* Hover/focus detail card, sharing the infotip bubble's look. */
+.tip-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: 260px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+  z-index: 60;
+}
+.tip-line:first-child {
+  font-weight: 700;
+}
+.progress-tip:hover .tip-bubble,
+.progress-tip:focus .tip-bubble,
+.progress-tip:focus-within .tip-bubble {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* --- Forms & buttons --------------------------------------------------- */
 
 .btn {

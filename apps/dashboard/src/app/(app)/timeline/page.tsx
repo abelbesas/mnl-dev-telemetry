@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MiniBar } from "@/components/charts";
 import { InfoTip } from "@/components/InfoTip";
+import { NoProgress, TaskProgressBar } from "@/components/TaskProgressBar";
 import {
   dayKey,
   formatClock,
@@ -13,7 +13,13 @@ import {
   parseTimelineFilters,
   TimelineFilters,
 } from "@/components/TimelineFilters";
-import { getUser, getUserSessions } from "@/lib/queries";
+import {
+  getEstimatesForIssueKeys,
+  getPriorSecondsByIssueKey,
+  getUser,
+  getUserSessions,
+} from "@/lib/queries";
+import { computeSessionProgress, type SessionProgress } from "@/lib/progress";
 import { weekRange } from "@/lib/range";
 import { requireUser } from "@/lib/session";
 import { runStitch } from "@/lib/stitch-run";
@@ -59,7 +65,22 @@ export default async function TimelinePage({
   const tasks = new Set(sessions.map((s) => s.issueKey ?? s.repo ?? "—"));
   const aiSharePct =
     totalReported > 0 ? Math.round((aiReported / totalReported) * 100) : 0;
-  const maxReported = Math.max(1, ...sessions.map((s) => s.reportedSeconds));
+
+  // Progress bars measure cumulative burn against each ticket's estimate, so we
+  // need the estimates plus any time logged on those tickets *before* this week
+  // (otherwise the week's first bar would understate the ticket — lib/progress).
+  const issueKeys = [
+    ...new Set(sessions.map((s) => s.issueKey).filter((k): k is string => !!k)),
+  ];
+  const [estimates, priorSeconds] = await Promise.all([
+    getEstimatesForIssueKeys(issueKeys),
+    getPriorSecondsByIssueKey(sessionUser.id, issueKeys, range.from),
+  ]);
+  const progressById = computeSessionProgress(
+    sessions,
+    estimates,
+    priorSeconds,
+  );
 
   // Group by local calendar day (most recent first).
   const groups = new Map<string, TaskSessionRow[]>();
@@ -73,7 +94,9 @@ export default async function TimelinePage({
       <div className="page-head">
         <h1>My timeline</h1>
         <p>
-          This week ({formatDay(range.from, tz)} – today), {tz}.
+          This week ({formatDay(range.from, tz)} – today), {tz}. Bars show each
+          ticket&rsquo;s running total against its estimate — hover one for the
+          numbers.
         </p>
       </div>
 
@@ -126,7 +149,12 @@ export default async function TimelinePage({
               {formatDay(daySessions[0]!.startedAt, tz)} · {formatDuration(dayTotal)}
             </div>
             {daySessions.map((s) => (
-              <SessionRow key={s.id} s={s} tz={tz} max={maxReported} />
+              <SessionRow
+                key={s.id}
+                s={s}
+                tz={tz}
+                progress={progressById.get(s.id)}
+              />
             ))}
           </div>
         );
@@ -138,11 +166,12 @@ export default async function TimelinePage({
 function SessionRow({
   s,
   tz,
-  max,
+  progress,
 }: {
   s: TaskSessionRow;
   tz: string;
-  max: number;
+  /** Absent when the ticket has no estimate (or the session has no ticket). */
+  progress: SessionProgress | undefined;
 }) {
   const rawSeconds = Math.round(
     (s.endedAt.getTime() - s.startedAt.getTime()) / 1000,
@@ -163,13 +192,11 @@ function SessionRow({
       {s.aiAssisted ? (
         <span className="badge ai">✦ {s.aiTool ?? "AI"}</span>
       ) : null}
-      <div className="bar-wrap">
-        <MiniBar
-          value={s.reportedSeconds}
-          max={max}
-          color={s.aiAssisted ? "var(--ai)" : "var(--accent-strong)"}
-        />
-      </div>
+      {progress ? (
+        <TaskProgressBar progress={progress} aiAssisted={s.aiAssisted} />
+      ) : (
+        <NoProgress issueKey={s.issueKey} />
+      )}
       <div className="time" style={{ minWidth: 130, textAlign: "right" }}>
         <strong style={{ color: "var(--text)" }}>
           {formatDuration(s.reportedSeconds)}

@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               alt=""
             />
           </picture>
-          MnlDev<span>Telemetry</span>
+          {/* MnlDev<span>Telemetry</span> */}
         </div>
         <Nav role={user.role} />
         <div className="sidebar-foot">

@@ -55,7 +55,7 @@ export default async function LoginPage({
               alt=""
             />
           </picture>
-          MnlDev<span>Telemetry</span>
+          {/* MnlDev<span>Telemetry</span> */}
         </div>
         <p className="muted" style={{ marginTop: 0 }}>
           Sign in to see your timeline and time drafts.

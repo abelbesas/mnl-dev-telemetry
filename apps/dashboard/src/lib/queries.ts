@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
 import { generateAgentToken, hashAgentToken } from "@mnl-dev-telemetry/shared";
 import { getDb } from "@/db";
 import {
@@ -38,6 +38,66 @@ export async function getUserSessions(
       ),
     )
     .orderBy(desc(taskSessions.startedAt));
+}
+
+/**
+ * Estimates for a set of tickets, keyed by issue key. Estimates are ticket-level
+ * (not per-user), so no user filter — they're the same number for everyone.
+ */
+export async function getEstimatesForIssueKeys(
+  issueKeys: string[],
+): Promise<Map<string, { estimateSeconds: number; source: "manual" | "jira" }>> {
+  if (issueKeys.length === 0) return new Map();
+  const db = getDb();
+  const rows = await db
+    .select({
+      issueKey: taskEstimates.issueKey,
+      estimateSeconds: taskEstimates.estimateSeconds,
+      source: taskEstimates.source,
+    })
+    .from(taskEstimates)
+    .where(inArray(taskEstimates.issueKey, issueKeys));
+
+  return new Map(
+    rows.map((r) => [
+      r.issueKey,
+      { estimateSeconds: r.estimateSeconds, source: r.source },
+    ]),
+  );
+}
+
+/**
+ * This user's reported time per ticket *before* `before` — the baseline the
+ * timeline's cumulative progress bars build on, so the first bar of a week
+ * accounts for time already burned earlier (lib/progress.ts).
+ */
+export async function getPriorSecondsByIssueKey(
+  userId: string,
+  issueKeys: string[],
+  before: Date,
+): Promise<Map<string, number>> {
+  if (issueKeys.length === 0) return new Map();
+  const db = getDb();
+  const rows = await db
+    .select({
+      issueKey: taskSessions.issueKey,
+      seconds: sql<number>`coalesce(sum(${taskSessions.reportedSeconds}), 0)`,
+    })
+    .from(taskSessions)
+    .where(
+      and(
+        eq(taskSessions.userId, userId),
+        inArray(taskSessions.issueKey, issueKeys),
+        lt(taskSessions.startedAt, before),
+      ),
+    )
+    .groupBy(taskSessions.issueKey);
+
+  const out = new Map<string, number>();
+  for (const r of rows) {
+    if (r.issueKey) out.set(r.issueKey, Number(r.seconds));
+  }
+  return out;
 }
 
 export interface TaskDetail {
