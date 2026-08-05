@@ -1,0 +1,1 @@
+ALTER TABLE "worklog_drafts" ADD COLUMN "edited" boolean DEFAULT false NOT NULL;

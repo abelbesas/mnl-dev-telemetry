@@ -22,6 +22,20 @@
       "when": 1785207616421,
       "tag": "0002_flawless_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785896257022,
+      "tag": "0003_medical_ultimo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785897592707,
+      "tag": "0004_peaceful_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

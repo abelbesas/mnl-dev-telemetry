@@ -9,6 +9,11 @@ import {
   formatDuration,
   toHours,
 } from "@/lib/format";
+import {
+  canComputeRatio,
+  compressionRatio,
+  syncEstimateFromJira,
+} from "@/lib/estimates";
 import { getTaskDetail, upsertEstimate } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
 import { runStitch } from "@/lib/stitch-run";
@@ -31,6 +36,10 @@ export default async function TaskDetailPage({
   } catch (err) {
     console.error("task detail: on-load stitch failed", err);
   }
+
+  // Pull the real estimate from Jira before reading (brief §6B). This never
+  // throws — a Jira outage becomes a line of text below, not a 500.
+  const estimateSync = await syncEstimateFromJira(user.id, issueKey);
 
   const detail = await getTaskDetail(user.id, issueKey);
 
@@ -67,12 +76,18 @@ export default async function TaskDetailPage({
     );
   }
 
-  const { actualSeconds, rawSeconds, estimateSeconds, aiAssisted, aiTools } =
-    detail;
-  const ratio =
-    estimateSeconds && estimateSeconds > 0
-      ? actualSeconds / estimateSeconds
-      : null;
+  const {
+    actualSeconds,
+    rawSeconds,
+    estimateSeconds,
+    estimateSource,
+    aiAssisted,
+    aiTools,
+  } = detail;
+  // A zero/absent estimate yields no ratio at all — dividing by it produced a
+  // nonsense "0.01×" before (brief §6B, known gap).
+  const ratio = compressionRatio(actualSeconds, estimateSeconds);
+  const hasEstimate = canComputeRatio(estimateSeconds);
   const ratioColor =
     ratio == null
       ? "var(--muted)"
@@ -103,12 +118,18 @@ export default async function TaskDetailPage({
         <div className="card stat">
           <div className="label">
             Estimate
-            <InfoTip text="The planned time for this ticket. Entered by hand for now; Phase 5 will pull it from Jira." />
+            <InfoTip text="The planned time for this ticket, pulled from the ticket's original estimate in Jira. Teams that estimate in story points leave it empty — you can set one by hand instead." />
           </div>
           <div className="value">
-            {estimateSeconds ? `${toHours(estimateSeconds)}h` : "—"}
+            {hasEstimate ? `${toHours(estimateSeconds!)}h` : "—"}
           </div>
-          <div className="sub">manual (Jira sync in Phase 5)</div>
+          <div className="sub">
+            {!hasEstimate
+              ? "no estimate in Jira"
+              : estimateSource === "jira"
+                ? "from Jira"
+                : "set by hand"}
+          </div>
         </div>
         <div className="card stat">
           <div className="label">
@@ -135,7 +156,7 @@ export default async function TaskDetailPage({
           </div>
           <div className="sub">
             {deltaPct == null
-              ? "set an estimate"
+              ? "needs an estimate"
               : deltaPct === 0
                 ? "on estimate"
                 : deltaPct < 0
@@ -153,7 +174,7 @@ export default async function TaskDetailPage({
             data={[
               {
                 label: "Estimate",
-                value: estimateSeconds ? toHours(estimateSeconds) : 0,
+                value: hasEstimate ? toHours(estimateSeconds!) : 0,
                 color: "var(--muted)",
               },
               {
@@ -169,11 +190,17 @@ export default async function TaskDetailPage({
           <EstimateForm
             action={saveEstimate}
             issueKey={issueKey}
-            defaultHours={estimateSeconds ? toHours(estimateSeconds) : ""}
+            defaultHours={hasEstimate ? toHours(estimateSeconds!) : ""}
           />
           <p className="muted" style={{ fontSize: "0.8rem", marginTop: "0.75rem" }}>
-            Estimates are a manual field in the MVP; Phase 5 populates them from
-            Jira.
+            {estimateSync.message}
+            {estimateSync.status === "no-estimate" ? (
+              <>
+                {" "}
+                Story points live in a per-instance custom field we don&apos;t
+                read, so set hours here if you want a compression ratio.
+              </>
+            ) : null}
           </p>
         </div>
       </div>

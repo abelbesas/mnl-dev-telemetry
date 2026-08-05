@@ -46,6 +46,8 @@ export interface TaskDetail {
   actualSeconds: number;
   rawSeconds: number;
   estimateSeconds: number | null;
+  /** Where the estimate came from — null when the ticket has none at all. */
+  estimateSource: "manual" | "jira" | null;
   aiAssisted: boolean;
   aiTools: string[];
 }
@@ -87,24 +89,57 @@ export async function getTaskDetail(
     actualSeconds,
     rawSeconds,
     estimateSeconds: estimate?.estimateSeconds ?? null,
+    estimateSource: estimate?.source ?? null,
     aiAssisted: sessions.some((s) => s.aiAssisted),
     aiTools,
   };
 }
 
+/**
+ * Save a hand-entered estimate. Always stamps `source: 'manual'` — a human
+ * typing a number is an explicit override, and the next Jira pull-down will
+ * only replace it if Jira actually has an estimate (see lib/estimates.ts).
+ */
 export async function upsertEstimate(
   issueKey: string,
   estimateSeconds: number,
   updatedBy: string,
 ): Promise<void> {
   const db = getDb();
+  const now = new Date();
   await db
     .insert(taskEstimates)
-    .values({ issueKey, estimateSeconds, updatedBy })
+    .values({ issueKey, estimateSeconds, updatedBy, source: "manual" })
     .onConflictDoUpdate({
       target: taskEstimates.issueKey,
-      set: { estimateSeconds, updatedBy, updatedAt: new Date() },
+      set: {
+        estimateSeconds,
+        updatedBy,
+        source: "manual",
+        syncedAt: null,
+        updatedAt: now,
+      },
     });
+}
+
+// --- Audit ----------------------------------------------------------------
+
+/**
+ * Append an audit row (spec §5: token issue/revoke, draft approval, sync push).
+ * Auditing is observability, not the operation — a failure here is logged and
+ * swallowed so it can never roll back the action it was recording.
+ */
+export async function recordAudit(
+  userId: string | null,
+  action: string,
+  target: string | null,
+  metadata: Record<string, unknown> = {},
+): Promise<void> {
+  try {
+    await getDb().insert(auditLog).values({ userId, action, target, metadata });
+  } catch (err) {
+    console.error(`audit: failed to record ${action}`, err);
+  }
 }
 
 // --- Settings: user + tokens ----------------------------------------------
