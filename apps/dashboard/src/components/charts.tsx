@@ -180,29 +180,3 @@ export function LineChart({
     </svg>
   );
 }
-
-/** A thin horizontal proportion bar (used in the timeline for reported time). */
-export function MiniBar({
-  value,
-  max,
-  color = "var(--accent-strong)",
-}: {
-  value: number;
-  max: number;
-  color?: string;
-}) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return (
-    <div
-      style={{
-        background: "var(--panel-2)",
-        borderRadius: 999,
-        height: 8,
-        width: "100%",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ width: `${pct}%`, height: "100%", background: color }} />
-    </div>
-  );
-}
