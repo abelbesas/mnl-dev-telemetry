@@ -153,14 +153,23 @@ h3 {
   padding: 0 0.5rem 1rem;
   letter-spacing: -0.01em;
 }
+/* `<picture>` is otherwise an inline wrapper around an inline <img>, which
+   leaves a baseline "descender gap" below the image and inflates the
+   wrapper's own box height — centering the wrapper then visibly centers the
+   wrong box, pushing the icon up. `display: contents` removes the wrapper
+   from layout entirely so the <img> itself is the flex item .brand centers. */
+.brand picture {
+  display: contents;
+}
 .brand-mark {
-  width: 28px;
-  height: 28px;
+  display: block;
+  width: 34px;
+  height: 34px;
   flex: none;
 }
 .login-card .brand .brand-mark {
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
 }
 .brand span {
   color: var(--accent);
