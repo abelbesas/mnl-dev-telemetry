@@ -45,6 +45,16 @@ export default async function LoginPage({
     <div className="login-wrap">
       <div className="card login-card">
         <div className="brand">
+          <picture>
+            <source srcSet="/logo.webp" type="image/webp" />
+            <img
+              className="brand-mark"
+              src="/logo.png"
+              width={36}
+              height={36}
+              alt=""
+            />
+          </picture>
           MnlDev<span>Telemetry</span>
         </div>
         <p className="muted" style={{ marginTop: 0 }}>

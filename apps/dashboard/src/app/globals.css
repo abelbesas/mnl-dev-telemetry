@@ -145,10 +145,22 @@ h3 {
   gap: 0.25rem;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.05rem;
   padding: 0 0.5rem 1rem;
   letter-spacing: -0.01em;
+}
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+.login-card .brand .brand-mark {
+  width: 36px;
+  height: 36px;
 }
 .brand span {
   color: var(--accent);
