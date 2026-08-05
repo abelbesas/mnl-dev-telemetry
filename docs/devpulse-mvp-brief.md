@@ -39,7 +39,7 @@ The ingestion API lives inside the Next.js app as route handlers (`app/api/inges
 
 1. **Nothing is ever committed to client repos.** Git hooks install via `core.hooksPath` pointing to `~/.devpulse/hooks/` — never into a repo's `.git/hooks` and never as tracked files.
 2. **No code contents leave the dev machine.** Events carry metadata only: repo name, branch, issue key, timestamps, diff stats (files changed, insertions, deletions), session info. Never file contents, diffs, or paths beyond the repo root name.
-3. **Dev machines never hold Jira/Tempo credentials.** Only the server holds service-account secrets. Agents on dev machines can only write events to the ingestion API.
+3. **Dev machines never hold Jira/Tempo credentials.** Only the server holds them — whether a shared service account or a per-user OAuth token (§4.6), they live encrypted server-side and are never sent to an agent. Agents on dev machines can only write events to the ingestion API.
 4. **Agent tokens are write-only.** A leaked token can submit events, never read anyone's data.
 5. **Worklogs reach Tempo only after human approval** in the dashboard (one-click populate). No silent auto-logging in the MVP.
 6. **Individual data is visible to the individual; managers see aggregates.** Enforce in queries, not just UI.
@@ -129,7 +129,8 @@ Keep the UI minimal (shadcn/ui is fine). The charts that matter: compression rat
 
 ### 4.6 Jira/Tempo sync (`apps/dashboard/app/api/sync` + worker route)
 
-- Adapter interface: `resolveIssue(key)`, `createIssue(draft)`, `pushWorklog(draft)`. MVP implements one adapter: **our Jira Cloud + Tempo v4** (worklogs need numeric issue id — resolve via Jira API; verify current Tempo API docs during implementation).
+- Adapter interface: `resolveIssue(key)`, `createIssue(draft)`, `pushWorklog(draft)`. MVP implements one adapter: **Jira Cloud + Tempo v4** (worklogs need numeric issue id — resolve via Jira API; verify current Tempo API docs during implementation).
+- **Connection model (revised — see docs/phase-5-jira-brief.md):** the original plan assumed a single shared service account in env vars. It is now **per-user OAuth 2.0 (3LO)**: each dev links their own Jira from Settings, and worklogs are authored as *them*. Tokens are still stored **server-side only, encrypted** — constraint 3 is unchanged. A shared service account remains the fallback for mirror-ticket creation.
 - Mirror tickets: if a draft's issue key belongs to a client project with no connection, create/find a mirror ticket in our Jira (label `mnl-dev-telemetry-mirror`, custom field or description line holding the external key via `mirror_links`), and log time against the mirror.
 - Every synced worklog description is tagged `[mnl-dev-telemetry]` + draft id for idempotency; sync retries are safe.
 - Client Jira adapters: **out of scope for MVP** — but the adapter interface ships so they slot in later.
@@ -184,9 +185,9 @@ Tools per §4.4; stdio server; hooks config installed by setup CLI; events flow 
 Stitching job per §4.2 with tests (gap handling, working-hours clamp, AI flag); Auth.js SSO; My timeline, Task detail, Settings(tokens); team aggregates page.
 *Accept:* seeded raw events produce expected sessions in tests; a dev sees only their own sessions; re-running stitching from scratch is deterministic.
 
-**Phase 5 — Drafts + one-click populate + Tempo sync.**
-Nightly draft rollup; Drafts screen with edit/approve; sync worker with our-Jira adapter, mirror-ticket logic, `[mnl-dev-telemetry]` idempotency tag.
-*Accept:* approving a draft creates a Tempo worklog against the right (or mirror) ticket exactly once, retries safe; dismissed drafts never sync.
+**Phase 5 — Jira connection + drafts + one-click Tempo sync.** → full brief: `docs/phase-5-jira-brief.md`
+Per-user Jira OAuth (link/unlink in Settings); estimate pull-down; nightly draft rollup; Drafts screen with edit/approve; sync worker with the Jira/Tempo adapter, mirror-ticket logic, `[mnl-dev-telemetry]` idempotency tag.
+*Accept:* a dev links their own Jira and sees real estimates on Task detail; approving a draft creates a Tempo worklog against the right (or mirror) ticket exactly once, retries safe; dismissed drafts never sync.
 
 **Post-MVP (separate briefs later):** Phase 6 VS Code/Cursor extension · Phase 7 client Jira adapters · Phase 8 deeper AI-attribution (commit trailers analysis, Cursor hooks as their support matures).
 
